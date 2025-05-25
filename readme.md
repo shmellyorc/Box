@@ -1,3 +1,6 @@
+![NuGet Version](https://img.shields.io/nuget/vpre/BoxEngine)
+![GitHub License](https://img.shields.io/github/license/shmellyorc/box)
+
 # Box Engine Features
 
 An ultra‑efficient, code‑first C# game engine built to give you complete control and blazing performance. Every core system—from rendering and audio to input handling and UI—is defined programmatically, removing any reliance on visual editors or external tools. Box Engine’s architecture is optimized for real‑time responsiveness, seamless updates, and easy integration into your existing workflows—all through pure C# code.

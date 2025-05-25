@@ -422,33 +422,33 @@ public class Listview : BoxRenderTarget
 	// /// <typeparam name="T">The type of entity to retrieve.</typeparam>
 	// /// <param name="index">The zero-based index of the child entity.</param>
 	// /// <returns>The child entity at the specified index, cast to type T.</returns>
-	public new T GetChild<T>(int index) where T : Entity
-	{
-		// return _container.GetChild<T>(index);
-		return GetChild<T>(index);
-	}
+	// public new T GetChild<T>(int index) where T : Entity
+	// {
+	// 	// return _container.GetChild<T>(index);
+	// 	return GetChild<T>(index);
+	// }
 
 	// /// <summary>
 	// /// Checks if the list view has a child entity of the specified type.
 	// /// </summary>
 	// /// <typeparam name="T">The type of entity to check for.</typeparam>
 	// /// <returns>True if a child of the specified type exists; otherwise, false.</returns>
-	public new bool HasChild<T>() where T : Entity
-	{
-		// return _container.HasChild<T>();
-		return HasChild<T>();
-	}
+	// public new bool HasChild<T>() where T : Entity
+	// {
+	// 	// return _container.HasChild<T>();
+	// 	return HasChild<T>();
+	// }
 
 	// /// <summary>
 	// /// Checks if the list view contains the specified child entity.
 	// /// </summary>
 	// /// <param name="entity">The entity to search for.</param>
 	// /// <returns>True if the entity is a child of the list view; otherwise, false.</returns>
-	public new bool HasChild(Entity entity)
-	{
-		// return _container.HasChild(entity);
-		return HasChild(entity);
-	}
+	// public new bool HasChild(Entity entity)
+	// {
+	// 	// return _container.HasChild(entity);
+	// 	return HasChild(entity);
+	// }
 
 	/// <summary>
 	/// Removes the specified child entity from the list view.

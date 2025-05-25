@@ -263,7 +263,7 @@ public class Screen
 	/// <summary>
 	/// Provides access to the Rand singleton instance.
 	/// </summary>
-	protected Rand Rand => Service.GetService<Rand>();
+	protected FastRandom Rand => Service.GetService<FastRandom>();
 
 	/// <summary>
 	/// Provides access to the SoundManager singleton instance.

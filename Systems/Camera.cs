@@ -15,7 +15,7 @@ public sealed class Camera
 	private Entity _entity;
 	private bool _shaking;
 	private float _shakeMagnitude, _shakeDuration, _shakeTimer;
-	private float NextFloat => Rand.Instance.Float() * 2f - 1f;
+	private float NextFloat => Engine.GetService<FastRandom>().NextFloat() * 2f - 1f;
 	private Rect2 _edgeRegion;
 
 	/// <summary>

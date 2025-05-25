@@ -1,325 +1,278 @@
+using System.Runtime.CompilerServices;
+
 using Box.Services.Types;
 
 namespace Box.Utils;
 
 /// <summary>
-/// Provides fast random number generation.
+/// A very fast, non-cryptographic pseudo-random number generator based on xoroshiro128+.
 /// </summary>
-public sealed class Rand : GameService
+public sealed class FastRandom : GameService
 {
-    private const double REAL_UNIT_INT = 1.0 / (int.MaxValue + 1.0);
-    private const double REAL_UNIT_UINT = 1.0 / (uint.MaxValue + 1.0);
-    private const uint Y = 842502087;
-    private const uint Z = 3579807591;
-    private const uint W = 273326509;
-    private uint _x;
-    private uint _y;
-    private uint _z;
-    private uint _w;
+	private ulong _s0, _s1;
 
-    // Buffer 32 bits in bitBuffer, return 1 at a time, keep track of how many have been returned
-    // with bitBufferIdx.
-    private uint _bitBuffer;
-    private uint _bitMask = 1;
-    private uint _byteBuffer;
-    private uint _byteMove = 0;
+	/// <summary>
+	/// Initializes a new instance of <see cref="FastRandom"/> with a seed drawn from
+	/// the system cryptographic RNG.
+	/// </summary>
+	public FastRandom()
+	{
+		var seedBytes = new byte[16];
+		System.Security.Cryptography.RandomNumberGenerator.Fill(seedBytes);
+		_s0 = BitConverter.ToUInt64(seedBytes, 0);
+		_s1 = BitConverter.ToUInt64(seedBytes, 8);
+	}
 
-    /// <summary>
-    /// Gets the instance of the Rand class for accessing fast random number generation.
-    /// </summary>
-    public static Rand Instance { get; private set; }
+	/// <summary>
+	/// Initializes a new instance of <see cref="FastRandom"/> using the specified seed.
+	/// </summary>
+	/// <param name="seed">An arbitrary 64-bit value to seed the generator.</param>
+	public FastRandom(ulong seed)
+	{
+		_s0 = SplitMix64(ref seed);
+		_s1 = SplitMix64(ref seed);
+	}
 
+	/// <summary>
+	/// Reseeds this instance of <see cref="FastRandom"/> with the given value.
+	/// </summary>
+	/// <param name="seed">An arbitrary 64-bit value to reseed the generator.</param>
+	public void SetSeed(ulong seed)
+	{
+		_s0 = SplitMix64(ref seed);
+		_s1 = SplitMix64(ref seed);
+	}
 
-    #region Constructors
-    /// <summary>
-    /// Initialises a new instance using time dependent seed.
-    /// </summary>
-    internal Rand()
-    {
-        Instance ??= this;
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static ulong SplitMix64(ref ulong x)
+	{
+		x += 0x9E3779B97F4A7C15UL;
+		ulong z = x;
+		z = (z ^ (z >> 30)) * 0xBF58476D1CE4E5B9UL;
+		z = (z ^ (z >> 27)) * 0x94D049BB133111EBUL;
+		return z ^ (z >> 31);
+	}
 
-        // Initialise using the system tick count.
-        Reinitialise(Environment.TickCount);
-    }
-    #endregion
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private ulong NextRaw()
+	{
+		ulong s0 = _s0;
+		ulong s1 = _s1;
+		ulong result = s0 + s1;
 
+		s1 ^= s0;
+		_s0 = RotateLeft(s0, 55) ^ s1 ^ (s1 << 14); // a, b
+		_s1 = RotateLeft(s1, 36);                     // c
 
-    #region Public Methods [Reinitialisation]
-    /// <summary>
-    /// Reinitialises using an int value as a seed.
-    /// </summary>
-    /// <param name="seed"></param>
-    public void Reinitialise(int seed)
-    {
-        // The only stipulation stated for the xorshift RNG is that at least one of
-        // the seeds x,y,z,w is non-zero. We fulfill that requirement by only allowing
-        // resetting of the x seed
-        _x = (uint)seed;
-        _y = Y;
-        _z = Z;
-        _w = W;
-    }
-    #endregion
+		return result;
+	}
 
+	[MethodImpl(MethodImplOptions.AggressiveInlining)]
+	private static ulong RotateLeft(ulong x, int k) => (x << k) | (x >> (64 - k));
 
-    #region Public Methods [System.Random functionally equivalent methods]
+	/// <summary>
+	/// Returns a non-negative random integer.
+	/// </summary>
+	/// <returns>An <see cref="int"/> between 0 (inclusive) and <see cref="int.MaxValue"/> (inclusive).</returns>
+	public int NextInt() => (int)(NextRaw() >> 33);
 
-    /// <summary>
-    /// Generates a random int over the range 0 to int.MaxValue-1.
-    /// MaxValue is not generated in order to remain functionally equivalent to System.Random.Next().
-    /// This does slightly eat into some of the performance gain over System.Random, but not much.
-    /// For better performance see:
-    /// 
-    /// Call NextInt() for an int over the range 0 to int.MaxValue.
-    /// 
-    /// Call NextUInt() and cast the result to an int to generate an int over the full Int32 value range
-    /// including negative values. 
-    /// </summary>
-    /// <returns></returns>
-    public int Integer()
-    {
-        while (true)
-        {
-            uint t = _x ^ _x << 11;
-            _x = _y;
-            _y = _z;
-            _z = _w;
-            _w = _w ^ _w >> 19 ^ (t ^ t >> 8);
+	/// <summary>
+	/// Returns a non-negative random integer less than <paramref name="max"/>.
+	/// </summary>
+	/// <param name="max">The exclusive upper bound. Must be &gt; 0.</param>
+	/// <returns>An <see cref="int"/> in the range [0, <paramref name="max"/>).</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="max"/> is not greater than zero.
+	/// </exception>
+	public int NextInt(int max)
+	{
+		if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than zero.");
+		return (int)((NextRaw() >> 33) % (uint)max);
+	}
 
-            // Handle the special case where the value int.MaxValue is generated. This is outside of 
-            // the range of permitted values, so we therefore call Next() to try again.
-            uint rtn = _w & 0x7FFFFFFF;
-            if (rtn != 0x7FFFFFFF) return (int)rtn;
-        }
-    }
+	/// <summary>
+	/// Returns a random integer in the range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>An <see cref="int"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public int NextInt(int min, int max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return min + NextInt(max - min);
+	}
 
+	/// <summary>
+	/// Returns a non-negative random 64-bit signed integer.
+	/// </summary>
+	/// <returns>A <see cref="long"/> between 0 (inclusive) and <see cref="long.MaxValue"/> (inclusive).</returns>
+	public long NextLong() => (long)(NextRaw() >> 1);
 
-    /// <summary>
-    /// Generates a random int over the range 0 to upperBound-1, and not including upperBound.
-    /// </summary>
-    /// <param name="upperBound"></param>
-    /// <returns></returns>
-    public int Integer(int upperBound)
-    {
-        //no check 4 better performance
-        //if ( upperBound < 0 )
-        //	throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=0");
-        uint t = _x ^ _x << 11;
-        _x = _y; _y = _z; _z = _w;
-        // The explicit int cast before the first multiplication gives better performance.
-        // See comments in NextDouble.
-        return (int)(REAL_UNIT_INT * (int)(0x7FFFFFFF & (_w = _w ^ _w >> 19 ^ (t ^ t >> 8))) * upperBound);
-    }
+	/// <summary>
+	/// Returns a non-negative random 64-bit signed integer less than <paramref name="max"/>.
+	/// </summary>
+	/// <param name="max">The exclusive upper bound. Must be &gt; 0.</param>
+	/// <returns>A <see cref="long"/> in the range [0, <paramref name="max"/>).</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="max"/> is not greater than zero.
+	/// </exception>
+	public long NextLong(long max)
+	{
+		if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than zero.");
+		return (long)(NextRaw() % (ulong)max);
+	}
 
+	/// <summary>
+	/// Returns a random 64-bit signed integer in the range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>A <see cref="long"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public long NextLong(long min, long max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return min + NextLong(max - min);
+	}
 
-    /// <summary>
-    /// Generates a random int over the range lowerBound to upperBound-1, and not including upperBound.
-    /// upperBound must be >= lowerBound. lowerBound may be negative.
-    /// </summary>
-    /// <param name="lowerBound"></param>
-    /// <param name="upperBound"></param>
-    /// <returns></returns>
-    public int Integer(int lowerBound, int upperBound)
-    {
-        //no check 4 better performance
-        //if ( lowerBound > upperBound )
-        //	throw new ArgumentOutOfRangeException("upperBound", upperBound, "upperBound must be >=lowerBound");
-        uint t = _x ^ _x << 11;
-        _x = _y; _y = _z; _z = _w;
-        // The explicit int cast before the first multiplication gives better performance.
-        // See comments in NextDouble.
-        int range = upperBound - lowerBound;
-        if (range < 0)
-        {   // If range is <0 then an overflow has occured and must resort to using long integer arithmetic instead (slower).
-            // We also must use all 32 bits of precision, instead of the normal 31, which again is slower.	
-            return lowerBound + (int)(REAL_UNIT_UINT * (_w = _w ^ _w >> 19 ^ (t ^ t >> 8)) * ((long)upperBound - lowerBound));
-        }
-        // 31 bits of precision will suffice if range<=int.MaxValue. This allows us to cast to an int and gain
-        // a little more performance.
-        return lowerBound + (int)(REAL_UNIT_INT * (int)(0x7FFFFFFF & (_w = (_w ^ _w >> 19) ^ (t ^ t >> 8))) * range);
-    }
+	/// <summary>
+	/// Returns a random double-precision floating-point number in [0.0, 1.0).
+	/// </summary>
+	/// <returns>A <see cref="double"/> in the range [0.0, 1.0).</returns>
+	public double NextDouble() => (NextRaw() >> 11) * (1.0 / (1UL << 53));
 
+	/// <summary>
+	/// Returns a random double-precision floating-point number in [0.0, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="max">The exclusive upper bound. Must be &gt; 0.</param>
+	/// <returns>A <see cref="double"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="max"/> is not greater than zero.
+	/// </exception>
+	public double NextDouble(double max)
+	{
+		if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than zero.");
+		return NextDouble() * max;
+	}
 
-    /// <summary>
-    /// Generates a random double. Values returned are from 0.0 up to but not including 1.0.
-    /// </summary>
-    /// <returns></returns>
-    public double Double()
-    {
-        uint t = _x ^ _x << 11;
-        _x = _y; _y = _z; _z = _w;
-        // Here we can gain a 2x speed improvement by generating a value that can be cast to 
-        // an int instead of the more easily available uint. If we then explicitly cast to an 
-        // int the compiler will then cast the int to a double to perform the multiplication, 
-        // this final cast is a lot faster than casting from a uint to a double. The extra cast
-        // to an int is very fast (the allocated bits remain the same) and so the overall effect 
-        // of the extra cast is a significant performance improvement.
-        //
-        // Also note that the loss of one bit of precision is equivalent to what occurs within 
-        // System.Random.
-        return REAL_UNIT_INT * (int)(0x7FFFFFFF & (_w = _w ^ _w >> 19 ^ (t ^ t >> 8)));
-    }
+	/// <summary>
+	/// Returns a random double-precision floating-point number in the range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>A <see cref="double"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public double NextDouble(double min, double max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return min + NextDouble() * (max - min);
+	}
 
-    /// <summary>
-    /// Generates a random float value between 0 (inclusive) and 1 (exclusive).
-    /// </summary>
-    /// <returns>A random float value.</returns>
-    public float Float() => (float)Double();
+	/// <summary>
+	/// Returns a random single-precision floating-point number in [0.0f, 1.0f).
+	/// </summary>
+	/// <returns>A <see cref="float"/> in the range [0.0f, 1.0f).</returns>
+	public float NextFloat() => (float)((NextRaw() >> 40) * (1.0 / (1UL << 24)));
 
-    /// <summary>
-    /// Generates a random float value within the specified range.
-    /// </summary>
-    /// <param name="min">The inclusive minimum value of the range.</param>
-    /// <param name="max">The exclusive maximum value of the range.</param>
-    /// <returns>A random float value within the specified range.</returns>
-    public float Float(float min, float max)
-    {
-        return min + Float() * (max - min);
-    }
+	/// <summary>
+	/// Returns a random single-precision floating-point number in [0.0f, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="max">The exclusive upper bound. Must be &gt; 0.</param>
+	/// <returns>A <see cref="float"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="max"/> is not greater than zero.
+	/// </exception>
+	public float NextFloat(float max)
+	{
+		if (max <= 0) throw new ArgumentOutOfRangeException(nameof(max), "max must be greater than zero.");
+		return NextFloat() * max;
+	}
 
+	/// <summary>
+	/// Returns a random single-precision floating-point number in the range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>A <see cref="float"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public float NextFloat(float min, float max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return min + NextFloat() * (max - min);
+	}
 
-    /// <summary>
-    /// Fills the provided byte array with random bytes.
-    /// </summary>
-    /// <param name="buffer"></param>
-    public unsafe void Bytes(byte[] buffer)
-    {
-        // Fill up the bulk of the buffer in chunks of 4 bytes at a time.
-        uint x = _x, y = _y, z = _z, w = _w;
-        int i = 0;
-        uint t;
-        //unsafe optimization by kasthack
-        //2x speedup
-        if (buffer.Length > 3)
-        {
-            fixed (byte* bptr = buffer)
-            {
-                uint* iptr = (uint*)bptr;
-                uint* endptr = iptr + buffer.Length / 4;
-                //#if WHILE
-                do
-                {
-                    t = (x ^ (x << 11));
-                    x = y; y = z; z = w;
-                    w = w ^ w >> 19 ^ (t ^ t >> 8);
-                    *iptr = w;
-                }
-                while (++iptr < endptr);
-                i = buffer.Length - buffer.Length % 4;
-            }
-        }
-        // Fill up any remaining bytes in the buffer.
-        if (i < buffer.Length)
-        {
-            // Generate 4 bytes.
-            t = (x ^ (x << 11));
-            x = y; y = z; z = w;
-            w = w ^ w >> 19 ^ (t ^ t >> 8);
-            do
-            {
-                buffer[i] = (byte)(w >>= 8);
-            } while (++i < buffer.Length);
-        }
-        _x = x; _y = y; _z = z; _w = w;
-    }
-    #endregion
+	/// <summary>
+	/// Returns a random boolean value.
+	/// </summary>
+	/// <returns><c>true</c> or <c>false</c>, each with approximately 50% probability.</returns>
+	public bool NextBool() => (NextRaw() & 1) == 1;
 
+	/// <summary>
+	/// Returns a random integer in the inclusive range [<paramref name="min"/>, <paramref name="max"/>].
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The inclusive upper bound. Must be greater than or equal to <paramref name="min"/>.</param>
+	/// <returns>An <see cref="int"/> in the specified inclusive range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is greater than <paramref name="max"/>.
+	/// </exception>
+	public int Range(int min, int max)
+	{
+		if (min > max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than or equal to max.");
+		return NextInt(min, max + 1);
+	}
 
-    #region Public Methods [Methods not present on System.Random]
-    /// <summary>
-    /// Generates a uint. Values returned are over the full range of a uint, 
-    /// uint.MinValue to uint.MaxValue, inclusive.
-    /// 
-    /// This is the fastest method for generating a single random number because the underlying
-    /// random number generator algorithm generates 32 random bits that can be cast directly to 
-    /// a uint.
-    /// </summary>
-    /// <returns></returns>
-    public uint UInteger()
-    {
-        uint t = _x ^ _x << 11;
-        _x = _y; _y = _z; _z = _w;
-        return _w = _w ^ _w >> 19 ^ (t ^ t >> 8);
-    }
+	/// <summary>
+	/// Returns a random long in the inclusive range [<paramref name="min"/>, <paramref name="max"/>].
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The inclusive upper bound. Must be greater than or equal to <paramref name="min"/>.</param>
+	/// <returns>A <see cref="long"/> in the specified inclusive range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is greater than <paramref name="max"/>.
+	/// </exception>
+	public long Range(long min, long max)
+	{
+		if (min > max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than or equal to max.");
+		return NextLong(min, max + 1);
+	}
 
-    // /// <summary>
-    // /// Generates a random int over the range 0 to int.MaxValue, inclusive. 
-    // /// This method differs from Next() only in that the range is 0 to int.MaxValue
-    // /// and not 0 to int.MaxValue-1.
-    // /// 
-    // /// The slight difference in range means this method is slightly faster than Next()
-    // /// but is not functionally equivalent to System.Random.Next().
-    // /// </summary>
-    // /// <returns></returns>
-    // internal int IntegerInclusive()
-    // {
-    //     uint t = _x ^ _x << 11;
-    //     _x = _y; _y = _z; _z = _w;
-    //     return (int)(0x7FFFFFFF & (_w = _w ^ _w >> 19 ^ (t ^ t >> 8)));
-    // }
+	/// <summary>
+	/// Returns a random double in the half-open range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>A <see cref="double"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public double Range(double min, double max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return NextDouble() * (max - min) + min;
+	}
 
-    /// <summary>
-    /// Generates a single random bit.
-    /// This method's performance is improved by generating 32 bits in one operation and storing them
-    /// ready for future calls.
-    /// </summary>
-    /// <returns></returns>
-    public bool Boolean()
-    {
-        if (_bitMask != 1) return (_bitBuffer & (_bitMask >>= 1)) == 0;
-        // Generate 32 more bits.
-        uint t = (_x ^ (_x << 11));
-        _x = _y; _y = _z; _z = _w;
-        _bitBuffer = _w = (_w ^ (_w >> 19)) ^ (t ^ (t >> 8));
-
-        // Reset the bitMask that tells us which bit to read next.
-        _bitMask = 0x80000000;
-        return (_bitBuffer & _bitMask) == 0;
-    }
-
-    /// <summary>
-    /// Generates a random byte value.
-    /// </summary>
-    /// <returns>A random byte value.</returns>
-    public byte Byte()
-    {
-        if (_byteMove != 0)
-        {
-            --_byteMove;
-            return (byte)(_byteBuffer >>= 8);
-        }
-        uint t = _x ^ _x << 11;
-        _x = _y; _y = _z; _z = _w;
-        _byteBuffer = _w = _w ^ _w >> 19 ^ (t ^ t >> 8);
-        _byteMove = 3;
-        return (byte)_byteBuffer;
-    }
-
-    /// <summary>
-    /// Generates a random float value between <paramref name="min"/> and <paramref name="max"/>, inclusive.
-    /// </summary>
-    /// <param name="min">The inclusive minimum value of the range.</param>
-    /// <param name="max">The inclusive maximum value of the range.</param>
-    /// <returns>A random float value in the range [min, max], including both ends.</returns>
-    public float Range(float min, float max)
-        => Float() * ((max - min) + float.Epsilon) + min;
-
-    /// <summary>
-    /// Generates a random double value between <paramref name="min"/> and <paramref name="max"/>, inclusive.
-    /// </summary>
-    /// <param name="min">The inclusive minimum value of the range.</param>
-    /// <param name="max">The inclusive maximum value of the range.</param>
-    /// <returns>A random double value in the range [min, max], including both ends.</returns>
-    public int Range(int min, int max) => Integer(min, max + 1);
-
-    /// <summary>
-    /// Generates a random double value within the specified range.
-    /// </summary>
-    /// <param name="min">The inclusive minimum value of the range.</param>
-    /// <param name="max">The exclusive maximum value of the range.</param>
-    /// <returns>A random double value within the specified range.</returns>
-    public double Range(double min, double max)
-        => Double() * ((max - min) + double.Epsilon) + min;
-
-    #endregion
+	/// <summary>
+	/// Returns a random float in the half-open range [<paramref name="min"/>, <paramref name="max"/>).
+	/// </summary>
+	/// <param name="min">The inclusive lower bound.</param>
+	/// <param name="max">The exclusive upper bound. Must be greater than <paramref name="min"/>.</param>
+	/// <returns>A <see cref="float"/> in the specified range.</returns>
+	/// <exception cref="ArgumentOutOfRangeException">
+	/// Thrown if <paramref name="min"/> is not less than <paramref name="max"/>.
+	/// </exception>
+	public float Range(float min, float max)
+	{
+		if (min >= max) throw new ArgumentOutOfRangeException(nameof(min), "min must be less than max.");
+		return NextFloat() * (max - min) + min;
+	}
 }

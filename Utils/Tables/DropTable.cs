@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+
 namespace Box.Utils.Tables;
 
 //Eg:
@@ -123,9 +125,9 @@ public class DropTable
 
 		foreach (var entry in _entries)
 		{
-			if (Rand.Instance.Float() < entry.Chance)
+			if (Engine.GetService<FastRandom>().NextFloat() < entry.Chance)
 			{
-				int amount = Rand.Instance.Range(entry.MinAmount, entry.MaxAmount);
+				int amount = Engine.GetService<FastRandom>().Range(entry.MinAmount, entry.MaxAmount);
 
 				loot.Add(new DropEntryResult(entry.ItemId, amount));
 			}

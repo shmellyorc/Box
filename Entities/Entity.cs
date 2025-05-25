@@ -376,7 +376,7 @@ public class Entity
 	/// <summary>
 	/// Gets the instance of the random number generator.
 	/// </summary>
-	protected Rand Rand => Engine.GetService<Rand>();
+	protected FastRandom Rand => Engine.GetService<FastRandom>();
 
 	/// <summary>
 	/// Gets the instance of the sound manager.
@@ -747,7 +747,7 @@ public class Entity
 						continue;
 					if (entity->IsExiting)
 						continue;
-					if(Screen.HasEntity(*entity))
+					if (Screen.HasEntity(*entity))
 						continue;
 
 					entity->Parent = this;

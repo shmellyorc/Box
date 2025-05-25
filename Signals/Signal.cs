@@ -1,3 +1,6 @@
+using System;
+using System.Collections.Generic;
+
 using Box.Services.Types;
 
 namespace Box.Signals;

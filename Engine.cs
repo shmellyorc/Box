@@ -1,4 +1,6 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System;
+using System.IO;
+using System.Runtime.CompilerServices;
 
 using Box.Graphics.Batch;
 using Box.Resources;
@@ -274,11 +276,11 @@ public class Engine : GameService, IDisposable
 	/// </param>
 	public Engine(EngineSettings settings)
 	{
-		// _instance ??= this;
 		_settings = settings;
 		Services = new ServiceCollection();
 
-		// Services.RegisterManyServices();
+		// Required to start here or it will crash if moved. Dont move.
+		Services.RegisterManyServices(this, _settings);
 
 		_styles = _settings.Fullscreen ? SFMLStyles.Fullscreen : SFMLStyles.Titlebar | SFMLStyles.Close;
 		_video = new SFMLVideoMode((uint)_settings.Window.X, (uint)_settings.Window.Y);
@@ -322,14 +324,13 @@ public class Engine : GameService, IDisposable
 				Input = _settings.InputMap;
 
 			Services.RegisterManyServices(
-				this,
-				_settings,
+
 				Input
 			);
 
 			Services.RegisterManyServices(
 				new Log(),
-				new Rand(),
+				new FastRandom(),
 				new Clock(),
 				new Assets(),
 				new Signal(),

@@ -70,7 +70,7 @@ public class GameService
 	/// <summary>
 	/// Gets the engine's random number generator.
 	/// </summary>
-	protected Rand Rand => Engine.GetService<Rand>();
+	protected FastRandom Rand => Engine.GetService<FastRandom>();
 
 	/// <summary>
 	/// Retrieves a registered engine service of the specified type.

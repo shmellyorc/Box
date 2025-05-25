@@ -1,0 +1,59 @@
+﻿<!-- dotnet pack -c Release  -->
+
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>net7.0</TargetFrameworks>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <NoWarn>CS8500;CA1822;CS0419;CS8632;</NoWarn>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <Authors>Shmellyorc</Authors>
+    <Company>Shmellyorc</Company>
+    <Version>1.0.56-beta</Version>
+    <Title>Box Engine</Title>
+    <PackageId>BoxEngine</PackageId>
+    <Description>Box is a simple game engine for building 2D games in .NET.</Description>
+    <PackageTags>game;engine;2d;dotnet;game engine;box;</PackageTags>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReadmeFile>readme.md</PackageReadmeFile>
+    <PackageLicenseFile>license.txt</PackageLicenseFile>
+    <Copyright>© 2025 Shmellyorc</Copyright>
+    <PackageReleaseNotes>
+		- This release introduces a flexible and efficient A* pathfinding engine designed for weighted edge graphs. Ideal 
+		for grid, tile-based, or custom spatial maps.
+		
+		- Features included in this release:
+		--- Modular graph system with support for custom positions via Vect2
+		--- Weighted edge connections with optional one-way or bidirectional links
+		--- Multiple heuristic types: Euclidean, Manhattan, Diagonal
+		--- Runtime toggling of node and edge activity using SetNodeActive and SetEdgeEnabled
+		--- Object pooling for internal path, visited, and came-from structures to reduce memory pressure
+		--- Heuristic result caching for faster repeated path calls
+		--- Dynamic cost modifier function for custom terrain or condition-aware pathfinding
+		--- Supports full path reconstruction via PathResult struct (includes path and total cost)
+		--- Simple wrappers for ID-only and position-based path results (ShortestPath and ShortestPathAsPositions)
+		--- Optimized for large tilemaps, sparse graphs, or dynamic environments
+		--- This system is cleanly separated into core components: Vertex, Edge, HeuristicType, PathResult, and AStar, allowing 
+		for easy extension and testing.
+    </PackageReleaseNotes>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="BoxPack" Version="1.0.0-alpha" />
+    <!-- <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="9.0.0" /> -->
+    <PackageReference Include="SFML.Net" Version="2.6.0" />
+    <!-- <ProjectReference Include="..\BoxPack\BoxPackLib\BoxPackLib.csproj" /> -->
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="Resources\Root\**\*.*" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="icon.png" Pack="true" PackagePath="" />
+    <None Include="readme.md" Pack="true" PackagePath="" />
+    <None Include="license.txt" Pack="true" PackagePath="" />
+  </ItemGroup>
+
+</Project>

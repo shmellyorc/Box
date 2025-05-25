@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>BoxEngine</id>
+    <version>1.0.42-beta</version>
+    <title>Box Engine</title>
+    <authors>Shmellyorc</authors>
+    <license type="file">license.txt</license>
+    <licenseUrl>https://aka.ms/deprecateLicenseUrl</licenseUrl>
+    <icon>icon.png</icon>
+    <readme>readme.md</readme>
+    <description>Box is a simple game engine for building 2D games in .NET.</description>
+    <releaseNotes>- Improved Renderer and RenderTarget performance, resulting in a 40% increase in frame rate.
+    - Improved SaveTypeWriterReader: It will now attempt to compress files if the compressed size is smaller; otherwise, it will default to an uncompressed format.
+    - Fixed and improved Sound Manager:
+    --- All SoundManager.Play methods now return a SoundInstance, allowing you to set up transitions or other effects.
+    --- Sound assets can now be set to always loop, eliminating the need to use blocking to keep them playing on a channel.
+    --- Removed channel blocking, which also led to the removal of fade-in and fade-out functionality.
+    --- Added functionality to check if a sound is playing on a channel based on either the sound asset or the sound instance.
+    --- Added sound instance pan and sound channel pan, allowing sounds to be adjusted to play through the left or right speaker.
+    --- Improved Master Channel behavior to function properly across all channels.
+    - New Input System Features:
+    --- Expanded Axis Input Handling:
+    ------ Added GetKeyAxisPressed, GetKeyAxisReleased, and GetKeyAxisJustPressed for keyboard input.
+    ------ Added GetGamepadAxisPressed, GetGamepadAxisReleased, and GetGamepadAxisJustPressed for gamepad input.
+    --- Improved Action Handling:
+    ------ Added action-based axis detection for gamepads and keyboards.
+    ------ Supports IsActionPressed, IsActionReleased, and IsActionJustPressed for more precise input tracking.
+    - Fixed a bug where the FPS counter incorrectly displayed 30 FPS, even when the actual frame rate was much higher.
+    - Object Pool hs been updated to version 9.0.0.
+    - Fixed a bug with bitmap font line height. Text now renders correctly and aligns as intended. 
+    - Added ChildrenAs to improve child entity handling based on a type.
+    - Added Camera Zoom
+    - Bug with resizing the window.</releaseNotes>
+    <copyright>© 2025 Shmellyorc</copyright>
+    <tags>game engine 2d dotnet game engine box</tags>
+    <repository type="git" />
+    <dependencies>
+      <group targetFramework="net7.0">
+        <dependency id="BoxPack" version="1.0.0-alpha" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.ObjectPool" version="9.0.0" exclude="Build,Analyzers" />
+        <dependency id="SFML.Net" version="2.6.0" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="C:\Users\Shmellyorc\Documents\Dotnet\Box\Box\bin\Release\net7.0\Box.dll" target="lib\net7.0\Box.dll" />
+    <file src="C:\Users\Shmellyorc\Documents\Dotnet\Box\Box\bin\Release\net7.0\Box.xml" target="lib\net7.0\Box.xml" />
+    <file src="C:\Users\Shmellyorc\Documents\Dotnet\Box\Box\icon.png" target="icon.png" />
+    <file src="C:\Users\Shmellyorc\Documents\Dotnet\Box\Box\readme.md" target="readme.md" />
+    <file src="C:\Users\Shmellyorc\Documents\Dotnet\Box\Box\license.txt" target="license.txt" />
+  </files>
+</package>

@@ -44,7 +44,7 @@ public class RenderTarget : Entity
 			// {
 			IEnumerator WaitForView()
 			{
-				while (_view is null)
+				while (_view == null)
 					yield return null;
 
 				_view.Center =
@@ -155,7 +155,7 @@ public class RenderTarget : Entity
 			return;
 		if (!_initialized)
 			return;
-		if (_target is null)
+		if (_target == null)
 			return;
 		if (!Visible)
 			return;

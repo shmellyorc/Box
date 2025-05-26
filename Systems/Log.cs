@@ -42,10 +42,7 @@ public sealed class Log : GameService
 		WriteMessge($"\n\n\n{GetService<EngineSettings>().AppName} started...");
 	}
 
-	private void OnExiting(Engine engine)
-	{
-		Exit();
-	}
+	private void OnExiting(Engine engine) => Exit();
 
 	/// <summary>
 	/// Finalizes an instance of the Log class.

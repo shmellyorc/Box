@@ -56,7 +56,7 @@ internal static class DrawUtils
 		List<SFMLVertex> output,
 		Rect2 dstRect,
 		Rect2 srcRect,
-		Color color,
+		BoxColor color,
 		SurfaceEffects effects = SurfaceEffects.None,
 		Vect2? origin = null,
 		float rotation = 0f,
@@ -106,12 +106,12 @@ internal static class DrawUtils
 		output.Add(new SFMLVertex(bottomLeft.ToSFML_F(), col, new SFMLVectF(uvLeft, uvBottom)));
 	}
 
-	public static void BuildPoint(List<SFMLVertex> output, Vect2 position, Color color)
+	public static void BuildPoint(List<SFMLVertex> output, Vect2 position, BoxColor color)
 	{
 		output.Add(new SFMLVertex(position.ToSFML_F(), color.ToSFML()));
 	}
 
-	public static void BuildLine(List<SFMLVertex> output, Vect2 start, Vect2 end, float thickness, Color color)
+	public static void BuildLine(List<SFMLVertex> output, Vect2 start, Vect2 end, float thickness, BoxColor color)
 	{
 		var direction = (end - start).Normalized();
 		var perpendicular = new Vect2(-direction.Y, direction.X) * (thickness * 0.5f);
@@ -127,7 +127,7 @@ internal static class DrawUtils
 		output.Add(new SFMLVertex(v0.ToSFML_F(), color.ToSFML()));
 	}
 
-	public static SFMLVertex[] BuildRectangleOutline(Rect2 rect, float thickness, Color color)
+	public static SFMLVertex[] BuildRectangleOutline(Rect2 rect, float thickness, BoxColor color)
 	{
 		if (_rectOutlineCache.Count > MaxCachedRectEntries)
 			_rectOutlineCache.Clear();
@@ -136,31 +136,31 @@ internal static class DrawUtils
 		{
 			verts = new SFMLVertex[]
 			{
-				new(new(0, 0), Color.AllShades.White.ToSFML()),
-				new(new(rect.Width, 0), Color.AllShades.White.ToSFML()),
-				new(new(rect.Width, rect.Height), Color.AllShades.White.ToSFML()),
-				new(new(0, rect.Height), Color.AllShades.White.ToSFML()),
-				new(new(0, 0), Color.AllShades.White.ToSFML())
+				new(new(0, 0), BoxColor.AllShades.White.ToSFML()),
+				new(new(rect.Width, 0), BoxColor.AllShades.White.ToSFML()),
+				new(new(rect.Width, rect.Height), BoxColor.AllShades.White.ToSFML()),
+				new(new(0, rect.Height), BoxColor.AllShades.White.ToSFML()),
+				new(new(0, 0), BoxColor.AllShades.White.ToSFML())
 			};
 			_rectOutlineCache[key] = verts;
 		}
 		return TranslateVertices(verts, new Vect2(rect.Left, rect.Top), color);
 	}
 
-	public static SFMLVertex[] BuildRectangleFill(Rect2 rect, Color color)
+	public static SFMLVertex[] BuildRectangleFill(Rect2 rect, BoxColor color)
 	{
 		if (_rectFillCache.Count > MaxCachedRectEntries)
 			_rectFillCache.Clear();
 		var key = (rect.Width, rect.Height);
 		if (!_rectFillCache.TryGetValue(key, out var verts))
 		{
-			verts = BuildQuadVertices(0, 0, rect.Width, rect.Height, Color.AllShades.White);
+			verts = BuildQuadVertices(0, 0, rect.Width, rect.Height, BoxColor.AllShades.White);
 			_rectFillCache[key] = verts;
 		}
 		return TranslateVertices(verts, new Vect2(rect.Left, rect.Top), color);
 	}
 
-	public static SFMLVertex[] BuildCircleOutline(Vect2 center, float radius, int segments, float thickness, Color color)
+	public static SFMLVertex[] BuildCircleOutline(Vect2 center, float radius, int segments, float thickness, BoxColor color)
 	{
 		if (_circleOutlineCache.Count > MaxCachedCircleEntries)
 			_circleOutlineCache.Clear();
@@ -177,12 +177,12 @@ internal static class DrawUtils
 				var in1 = new Vect2(MathF.Cos(a1), MathF.Sin(a1)) * (radius - thickness * 0.5f);
 				var out0 = new Vect2(MathF.Cos(a0), MathF.Sin(a0)) * (radius + thickness * 0.5f);
 				var out1 = new Vect2(MathF.Cos(a1), MathF.Sin(a1)) * (radius + thickness * 0.5f);
-				verts.Add(new SFMLVertex(in0.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(out0.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(out1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(out1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(in1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(in0.ToSFML_F(), Color.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(in0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(out0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(out1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(out1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(in1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(in0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
 			}
 			cached = verts.ToArray();
 			_circleOutlineCache[key] = cached;
@@ -190,7 +190,8 @@ internal static class DrawUtils
 		return TranslateVertices(cached, center, color);
 	}
 
-	public static SFMLVertex[] BuildCircleFill(Vect2 center, float radius, int segments, Color color, Vect2? origin = null, float rotation = 0f, Vect2? scale = null)
+	public static SFMLVertex[] BuildCircleFill(Vect2 center, float radius, int segments, BoxColor color, Vect2? origin = null,
+	float rotation = 0f, Vect2? scale = null)
 	{
 		if (_circleFillCache.Count > MaxCachedCircleEntries)
 			_circleFillCache.Clear();
@@ -205,9 +206,9 @@ internal static class DrawUtils
 				float a1 = (i + 1) * step;
 				var p1 = new Vect2(MathF.Cos(a0), MathF.Sin(a0)) * radius;
 				var p2 = new Vect2(MathF.Cos(a1), MathF.Sin(a1)) * radius;
-				verts.Add(new SFMLVertex(new Vect2(0, 0).ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p2.ToSFML_F(), Color.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(new Vect2(0, 0).ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p2.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
 			}
 			cached = verts.ToArray();
 			_circleFillCache[key] = cached;
@@ -219,7 +220,7 @@ internal static class DrawUtils
 		Vect2 center,
 		Vect2 radii,
 		int segments,
-		Color color,
+		BoxColor color,
 		Vect2? origin = null,
 		float rotation = 0f,
 		Vect2? scale = null)
@@ -241,9 +242,9 @@ internal static class DrawUtils
 				var p1 = new Vect2(MathF.Cos(a0), MathF.Sin(a0));
 				var p2 = new Vect2(MathF.Cos(a1), MathF.Sin(a1));
 
-				verts.Add(new SFMLVertex(new Vect2(0, 0).ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p2.ToSFML_F(), Color.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(new Vect2(0, 0).ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p2.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
 			}
 
 			cached = verts.ToArray();
@@ -258,7 +259,7 @@ internal static class DrawUtils
 		Vect2 radii,
 		int segments,
 		float thickness,
-		Color color,
+		BoxColor color,
 		Vect2? origin = null,
 		float rotation = 0f,
 		Vect2? scale = null)
@@ -284,12 +285,12 @@ internal static class DrawUtils
 			var outer0 = new Vect2(MathF.Cos(a0), MathF.Sin(a0)) * (1f + thicknessOffset);
 			var outer1 = new Vect2(MathF.Cos(a1), MathF.Sin(a1)) * (1f + thicknessOffset);
 
-			verts.Add(new SFMLVertex(inner0.ToSFML_F(), Color.AllShades.White.ToSFML()));
-			verts.Add(new SFMLVertex(outer0.ToSFML_F(), Color.AllShades.White.ToSFML()));
-			verts.Add(new SFMLVertex(outer1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-			verts.Add(new SFMLVertex(outer1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-			verts.Add(new SFMLVertex(inner1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-			verts.Add(new SFMLVertex(inner0.ToSFML_F(), Color.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(inner0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(outer0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(outer1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(outer1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(inner1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+			verts.Add(new SFMLVertex(inner0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
 		}
 
 		cached = verts.ToArray();
@@ -346,9 +347,9 @@ internal static class DrawUtils
 				var p1 = center + new Vect2(MathF.Cos(a0), MathF.Sin(a0)) * r;
 				var p2 = center + new Vect2(MathF.Cos(a1), MathF.Sin(a1)) * r;
 
-				verts.Add(new SFMLVertex(p0.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p1.ToSFML_F(), Color.AllShades.White.ToSFML()));
-				verts.Add(new SFMLVertex(p2.ToSFML_F(), Color.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p0.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p1.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
+				verts.Add(new SFMLVertex(p2.ToSFML_F(), BoxColor.AllShades.White.ToSFML()));
 			}
 		}
 
@@ -369,11 +370,11 @@ internal static class DrawUtils
 		var key = (w, h, r, thickness, segments);
 
 		if (_roundedRectOutlineCache.TryGetValue(key, out var cached))
-			return TranslateVertices(cached, new Vect2(rect.Left, rect.Top), overrideColor ?? Color.AllShades.White);
+			return TranslateVertices(cached, new Vect2(rect.Left, rect.Top), overrideColor ?? BoxColor.AllShades.White);
 
 		var verts = new List<SFMLVertex>();
 		float angleStep = MathF.PI * 0.5f / segments;
-		var white = Color.AllShades.White.ToSFML();
+		var white = BoxColor.AllShades.White.ToSFML();
 
 		void AddCorner(float cx, float cy, float startAngle)
 		{
@@ -403,13 +404,13 @@ internal static class DrawUtils
 
 		cached = verts.ToArray();
 		_roundedRectOutlineCache[key] = cached;
-		return TranslateVertices(cached, new Vect2(rect.Left, rect.Top), overrideColor ?? Color.AllShades.White);
+		return TranslateVertices(cached, new Vect2(rect.Left, rect.Top), overrideColor ?? BoxColor.AllShades.White);
 	}
 
-	public static SFMLVertex[] BuildPolyline(IReadOnlyList<Vect2> points, float thickness, Color color)
+	public static SFMLVertex[] BuildPolyline(IReadOnlyList<Vect2> points, float thickness, BoxColor color)
 	{
 		if (points.Count < 2)
-			return System.Array.Empty<SFMLVertex>();
+			return Array.Empty<SFMLVertex>();
 
 		var key = (points.Count, thickness);
 		if (_polylineCache.Count > MaxCachedPolylineEntries)
@@ -418,7 +419,7 @@ internal static class DrawUtils
 		if (_polylineCache.TryGetValue(key, out var cached))
 			return TransformVertices(cached, Vect2.Zero, color);
 
-		var white = Color.AllShades.White.ToSFML();
+		var white = BoxColor.AllShades.White.ToSFML();
 		var verts = new List<SFMLVertex>(points.Count * 6);
 
 		for (int i = 0; i < points.Count - 1; i++)
@@ -446,7 +447,7 @@ internal static class DrawUtils
 		return TransformVertices(cached, Vect2.Zero, color);
 	}
 
-	public static SFMLVertex[] BuildPolygonFill(IReadOnlyList<Vect2> points, Color color)
+	public static SFMLVertex[] BuildPolygonFill(IReadOnlyList<Vect2> points, BoxColor color)
 	{
 		if (points.Count < 3)
 			return System.Array.Empty<SFMLVertex>();
@@ -458,7 +459,7 @@ internal static class DrawUtils
 		if (_polygonFillCache.TryGetValue(key, out var cached))
 			return TransformVertices(cached, Vect2.Zero, color);
 
-		var white = Color.AllShades.White.ToSFML();
+		var white = BoxColor.AllShades.White.ToSFML();
 		var verts = new List<SFMLVertex>((points.Count - 2) * 3);
 		var p0 = points[0];
 		for (int i = 1; i < points.Count - 1; i++)
@@ -473,7 +474,7 @@ internal static class DrawUtils
 		return TransformVertices(cached, Vect2.Zero, color);
 	}
 
-	public static SFMLVertex[] BuildTriangle(Vect2 p0, Vect2 p1, Vect2 p2, Color color)
+	public static SFMLVertex[] BuildTriangle(Vect2 p0, Vect2 p1, Vect2 p2, BoxColor color)
 	{
 		if (_triangleCache.Count > MaxCachedTriangleEntries)
 			_triangleCache.Clear();
@@ -482,7 +483,7 @@ internal static class DrawUtils
 		if (_triangleCache.TryGetValue(key, out var cached))
 			return TransformVertices(cached, Vect2.Zero, color);
 
-		var white = Color.AllShades.White.ToSFML();
+		var white = BoxColor.AllShades.White.ToSFML();
 		cached = new[]
 		{
 			new SFMLVertex(p0.ToSFML_F(), white),
@@ -493,7 +494,7 @@ internal static class DrawUtils
 		return TransformVertices(cached, Vect2.Zero, color);
 	}
 
-	public static SFMLVertex[] BuildConvexPolygon(IReadOnlyList<Vect2> points, Color color)
+	public static SFMLVertex[] BuildConvexPolygon(IReadOnlyList<Vect2> points, BoxColor color)
 	{
 		if (points.Count < 3)
 			return System.Array.Empty<SFMLVertex>();
@@ -522,7 +523,7 @@ internal static class DrawUtils
 
 
 
-	private static SFMLVertex[] TransformVertices(SFMLVertex[] source, Vect2 translation, Color color)
+	private static SFMLVertex[] TransformVertices(SFMLVertex[] source, Vect2 translation, BoxColor color)
 	{
 		var result = new SFMLVertex[source.Length];
 		for (int i = 0; i < source.Length; i++)
@@ -533,7 +534,7 @@ internal static class DrawUtils
 		return result;
 	}
 
-	private static SFMLVertex[] BuildQuadVertices(float x, float y, float width, float height, Color color)
+	private static SFMLVertex[] BuildQuadVertices(float x, float y, float width, float height, BoxColor color)
 	{
 		var c = color.ToSFML();
 		return new SFMLVertex[]
@@ -554,7 +555,8 @@ internal static class DrawUtils
 		return result;
 	}
 
-	private static SFMLVertex[] TransformVertices(SFMLVertex[] source, Vect2 translation, Color color, Vect2? origin = null, float rotation = 0f, Vect2? scale = null)
+	private static SFMLVertex[] TransformVertices(SFMLVertex[] source, Vect2 translation, BoxColor color,
+	Vect2? origin = null, float rotation = 0f, Vect2? scale = null)
 	{
 		var result = new SFMLVertex[source.Length];
 		var cos = MathF.Cos(rotation);

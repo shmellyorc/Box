@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Box.Helpers
 {
-	public static class Box
+	public static class Bx
 	{
 		public static uint Hash(string hash) => HashHelpers.Hash32(hash);
 		public static uint Hash(Enum hash) => HashHelpers.Hash32(hash.ToEnumString());

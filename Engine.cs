@@ -122,7 +122,7 @@ public class Engine : GameService, IDisposable
 	/// </remarks>
 	public static object GetServiceAsObject(Type singleton)
 	{
-		if (singleton is null)
+		if (singleton == null)
 			return null;
 
 		return Services.Services.FirstOrDefault(x => x.GetType() == singleton);
@@ -401,7 +401,7 @@ public class Engine : GameService, IDisposable
 	/// </summary>
 	public void Quit()
 	{
-		if (_window is null)
+		if (_window == null)
 			return;
 		if (!_window.IsOpen)
 			return;
@@ -503,7 +503,7 @@ public class Engine : GameService, IDisposable
 			Signal sl = GetService<Signal>();
 			SoundManager sd = GetService<SoundManager>();
 
-			string activeScreen = sm.ActiveScreen is null
+			string activeScreen = sm.ActiveScreen == null
 				? "None" : sm.ActiveScreen.GetType().Name;
 
 			sb.Append($"{_settings.AppTitle} | ");

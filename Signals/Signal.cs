@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-
 using Box.Services.Types;
 
 namespace Box.Signals;
@@ -22,13 +19,6 @@ public sealed class Signal : GameService
 	/// Gets the total number of connected signals in the entire project.
 	/// </summary>
 	public int Count => _items.Count;
-
-	// /// <summary>
-	// /// Represents the current instance of a signal.
-	// /// </summary>
-	// public static Signal Instance { get; private set; }
-
-	// internal Signal() => Instance ??= this;
 
 	internal void Clear()
 	{

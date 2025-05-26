@@ -7,7 +7,8 @@ namespace Box.Graphics.Batch;
 /// </summary>
 public sealed class Renderer : GameService
 {
-	private readonly Dictionary<(SFMLTexture Texture, SFMLPrimitiveType Type, SFMLBlendMode Blend, int ZOrder), List<SFMLVertex>> _groupedVerts = new();
+	private readonly Dictionary<(SFMLTexture Texture, SFMLPrimitiveType Type, SFMLBlendMode Blend, int ZOrder),
+		List<SFMLVertex>> _groupedVerts = new();
 	private Rect2 _viewport;
 	private bool _isRunning;
 	private int _batchIndex, _batchCount;
@@ -172,7 +173,7 @@ public sealed class Renderer : GameService
 
 		if (BatchCount != _batchCount)
 			BatchCount = _batchCount;
-		if(Count != _batchCount)
+		if (Count != _batchCount)
 			Count = _batchCount;
 
 		_groupedVerts.Clear();

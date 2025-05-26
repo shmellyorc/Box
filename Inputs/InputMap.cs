@@ -923,27 +923,27 @@ public class InputMap : GameService
 			var value = button switch
 			{
 				GamepadButton.LeftThumbstickLeft =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.X) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.LeftThumbstickRight =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.X), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.LeftThumbstickUp =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.Y) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.LeftThumbstickDown =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.Y), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
 
 				GamepadButton.RightThumbstickLeft =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.U) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.RightThumbstickRight =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.U), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.RightThumbstickUp =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.V) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.RightThumbstickDown =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.V), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 
 				GamepadButton.LeftTrigger =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.Z), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 				GamepadButton.RightTrigger =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLGamepad.Axis.Z) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
 
 				_ => 0f
 			};

@@ -38,7 +38,7 @@ public class Entity
 
 			foreach (var item in _children.ToList())
 			{
-				if (item is null || item.IsExiting)
+				if (item == null || item.IsExiting)
 					continue;
 
 				yield return item;
@@ -59,7 +59,7 @@ public class Entity
 	/// <summary>
 	/// Determines if this entity has a parent.
 	/// </summary>
-	public bool IsParent => Parent is null;
+	public bool IsParent => Parent == null;
 
 	/// <summary>
 	/// Determines if this entity is a child of another entity.
@@ -131,9 +131,9 @@ public class Entity
 
 	private IEnumerator ProcessName(string name)
 	{
-		if (Screen is null)
+		if (Screen == null)
 		{
-			while (Screen is null)
+			while (Screen == null)
 				yield return null;
 		}
 
@@ -188,7 +188,7 @@ public class Entity
 
 			_visible = value;
 
-			if (Screen is null)
+			if (Screen == null)
 				// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
 				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen,
 					(screen) => Emit(EngineSignals.ScreenDirty, screen)));
@@ -217,7 +217,7 @@ public class Entity
 
 			_keepAlive = value;
 
-			if (Screen is null)
+			if (Screen == null)
 				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen)
 					=> Emit(EngineSignals.ScreenDirty, screen)));
 			else
@@ -244,7 +244,7 @@ public class Entity
 
 			_layer = value;
 
-			if (Screen is null)
+			if (Screen == null)
 				// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
 				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(()
 					=> Screen, (screen) => Emit(EngineSignals.ScreenDirty, screen)));
@@ -285,7 +285,7 @@ public class Entity
 
 			_position = value;
 
-			if (Screen is null)
+			if (Screen == null)
 				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen) =>
 					Emit(EngineSignals.ScreenDirty, screen)));
 			else
@@ -318,7 +318,7 @@ public class Entity
 
 			_size = value;
 
-			if (Screen is null)
+			if (Screen == null)
 			{
 				Coroutine.Run(
 					CoroutineHelper.WaitForObject<Screen>(()
@@ -743,7 +743,7 @@ public class Entity
 				{
 					var entity = ptr + i;
 
-					if (*entity is null)
+					if (*entity == null)
 						continue;
 					if (entity->IsExiting)
 						continue;
@@ -764,9 +764,9 @@ public class Entity
 
 		IEnumerator routine(Entity[] iEntity)
 		{
-			if (Screen is null)
+			if (Screen == null)
 			{
-				while (Screen is null)
+				while (Screen == null)
 					yield return null;
 			}
 
@@ -802,7 +802,7 @@ public class Entity
 	/// <param name="entity">The child entity to insert.</param>
 	public void InsertChild(int index, Entity entity)
 	{
-		if (entity is null)
+		if (entity == null)
 			return;
 		if (entity.IsExiting)
 			return;
@@ -853,7 +853,7 @@ public class Entity
 	{
 		if (!Children.Any())
 			return false;
-		if (entity is null)
+		if (entity == null)
 			return false;
 
 		return Children.Any(x => x == entity);
@@ -866,7 +866,7 @@ public class Entity
 	/// <returns>True if the child entity was successfully removed; false if the child entity was not found.</returns>
 	public bool RemoveChild(Entity entity)
 	{
-		if (entity is null)
+		if (entity == null)
 			return false;
 		if (entity.IsExiting)
 			return false;

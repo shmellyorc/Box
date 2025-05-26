@@ -1,121 +1,105 @@
-/*
-    MIT License
-
-    Copyright (c) 2017 Chevy Ray Johnston
-
-    Permission is hereby granted, free of charge, to any person obtaining a copy
-    of this software and associated documentation files (the "Software"), to deal
-    in the Software without restriction, including without limitation the rights
-    to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-    copies of the Software, and to permit persons to whom the Software is
-    furnished to do so, subject to the following conditions:
-
-    The above copyright notice and this permission notice shall be included in all
-    copies or substantial portions of the Software.
-
-    THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-    IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-    FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-    AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-    LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-    OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-    SOFTWARE.
-*/
-
 namespace Box.Coroutines;
 
 /// <summary>
-/// A handle to a (potentially running) coroutine.
+/// Represents a handle to a running coroutine, allowing control and status queries.
 /// </summary>
-public readonly struct CoroutineHandle : IEquatable<CoroutineHandle>
+public readonly struct CoroutineHandle : IDisposable, IEquatable<CoroutineHandle>
 {
-	public Coroutine Coroutine => Engine.GetService<Coroutine>();
+	private static readonly Coroutine Svc = Engine.GetService<Coroutine>();
 
 	/// <summary>
-	/// Reference to the routine's enumerator.
+	/// Represents an uninitialized or non-existent coroutine handle.
+	/// </summary>
+	public static readonly CoroutineHandle None = default;
+
+	/// <summary>
+	/// The underlying IEnumerator of the coroutine.
 	/// </summary>
 	public IEnumerator Enumerator { get; }
 
-    /// <summary>
-    /// True if the enumerator is currently running.
-    /// </summary>
-    public bool IsRunning
-        => Enumerator is not null && Coroutine.IsRunning(Enumerator);
+	/// <summary>
+	/// Indicates whether this handle references a valid coroutine.
+	/// </summary>
+	public bool IsValid => Enumerator != null;
 
-    internal CoroutineHandle(IEnumerator routine) => Enumerator = routine;
+	/// <summary>
+	/// Indicates whether the referenced coroutine is currently running.
+	/// </summary>
+	public bool IsRunning => IsValid && Svc.IsRunning(Enumerator);
 
-    /// <summary>
-    /// Stop this coroutine if it is running.
-    /// </summary>
-    /// <returns>True if the coroutine was stopped.</returns>
-    public bool Stop() => IsRunning && Coroutine.Stop(Enumerator);
+	internal CoroutineHandle(IEnumerator routine) => Enumerator = routine;
 
-    /// <summary>
-    /// A routine to wait until this coroutine has finished running.
-    /// </summary>
-    /// <returns>The wait enumerator.</returns>
-    public IEnumerator Wait()
-    {
-        if (Enumerator is null)
-            yield break;
+	/// <summary>
+	/// Stops the referenced coroutine if it is running.
+	/// </summary>
+	/// <returns><c>true</c> if the coroutine was successfully stopped; otherwise, <c>false</c>.</returns>
+	public bool Stop() => IsRunning && Svc.Stop(Enumerator);
 
-        while (Coroutine.IsRunning(Enumerator))
-            yield return null;
-    }
+	/// <summary>
+	/// Disposes the coroutine handle by stopping the coroutine if it is running.
+	/// </summary>
+	public void Dispose() => Stop();
 
-    /// <summary>
-    /// Checks if two coroutine handles are equal.
-    /// </summary>
-    /// <param name="left">The left-hand side coroutine handle.</param>
-    /// <param name="right">The right-hand side coroutine handle.</param>
-    /// <returns>True if the coroutine handles are equal, false otherwise.</returns>
-    public static bool operator ==(CoroutineHandle left, CoroutineHandle right) => left.Enumerator == right.Enumerator;
+	/// <summary>
+	/// Implicitly converts the handle to <c>true</c> if the coroutine is running.
+	/// </summary>
+	/// <param name="h">The coroutine handle to evaluate.</param>
+	/// <returns><c>true</c> if <paramref name="h"/> is running; otherwise, <c>false</c>.</returns>
+	public static implicit operator bool(CoroutineHandle h) => h.IsRunning;
 
-    /// <summary>
-    /// Checks if two coroutine handles are not equal.
-    /// </summary>
-    /// <param name="left">The left-hand side coroutine handle.</param>
-    /// <param name="right">The right-hand side coroutine handle.</param>
-    /// <returns>True if the coroutine handles are not equal, false otherwise.</returns>
-    public static bool operator !=(CoroutineHandle left, CoroutineHandle right) => !(left == right);
+	/// <summary>
+	/// Determines whether this instance and another specified <see cref="CoroutineHandle"/> have the same 
+	/// underlying routine.
+	/// </summary>
+	/// <param name="other">The other coroutine handle to compare.</param>
+	/// <returns><c>true</c> if both handles reference the same coroutine; otherwise, <c>false</c>.</returns>
 
-    /// <summary>
-    /// Checks if this coroutine handle is equal to another coroutine handle.
-    /// </summary>
-    /// <param name="other">The coroutine handle to compare.</param>
-    /// <returns>True if this coroutine handle is equal to the specified coroutine handle, false otherwise.</returns>
-    public bool Equals(CoroutineHandle other) => Enumerator == other.Enumerator;
+	public readonly bool Equals(CoroutineHandle other) =>
+		Enumerator == other.Enumerator;
 
-    /// <summary>
-    /// Checks if this coroutine handle is equal to another object.
-    /// </summary>
-    /// <param name="obj">The object to compare.</param>
-    /// <returns>True if this coroutine handle is equal to the specified object, false otherwise.</returns>
-    public override bool Equals([NotNullWhen(true)] object obj)
-    {
-        if (obj is CoroutineHandle value)
-            return Equals(value);
+	/// <summary>
+	/// Determines whether this instance and a specified object, which must also be a <see cref="CoroutineHandle"/>, 
+	/// have the same value.
+	/// </summary>
+	/// <param name="obj">The object to compare to this instance.</param>
+	/// <returns><c>true</c> if <paramref name="obj"/> is a <see cref="CoroutineHandle"/> and references the same 
+	/// coroutine; otherwise, <c>false</c>.
+	/// </returns>
+	public readonly override bool Equals(object obj) =>
+		obj is CoroutineHandle h && Equals(h);
 
-        return false;
-    }
+	/// <summary>
+	/// Returns the hash code for this coroutine handle.
+	/// </summary>
+	/// <returns>An integer hash code representing the handle.</returns>
+	public readonly override int GetHashCode() =>
+		Enumerator?.GetHashCode() ?? 0;
 
-    /// <summary>
-    /// Returns the hash code for this coroutine handle.
-    /// </summary>
-    /// <returns>A hash code value for this coroutine handle.</returns>
-    public override int GetHashCode() => HashCode.Combine(Enumerator);
+	/// <summary>
+	/// Returns a string that represents the current coroutine handle.
+	/// </summary>
+	/// <returns>A string representation of this handle, including the routine and its running state.</returns>
+	public readonly override string ToString() =>
+		$"CoroutineHandle[{Enumerator}, Running={IsRunning}]";
 
-    /// <summary>
-    /// Returns a string representation of this coroutine handle.
-    /// </summary>
-    /// <returns>A string that represents this coroutine handle.</returns>
-    public override string ToString()
-    {
-		var sb = new StringBuilder();
+	/// <summary>
+	/// Determines whether two <see cref="CoroutineHandle"/> instances are equal,
+	/// by comparing their underlying enumerators.
+	/// </summary>
+	/// <param name="left">The first handle to compare.</param>
+	/// <param name="right">The second handle to compare.</param>
+	/// <returns>
+	/// <c>true</c> if both handles refer to the same coroutine; otherwise <c>false</c>.
+	/// </returns>
+	public static bool operator ==(CoroutineHandle left, CoroutineHandle right) => left.Equals(right);
 
-		sb.Append($"Enumerator: {Enumerator}, IsRunning: {IsRunning}");
-
-        return sb.ToString();
-    }
+	/// <summary>
+	/// Determines whether two <see cref="CoroutineHandle"/> instances are not equal.
+	/// </summary>
+	/// <param name="left">The first handle to compare.</param>
+	/// <param name="right">The second handle to compare.</param>
+	/// <returns>
+	/// <c>true</c> if the handles refer to different coroutines; otherwise <c>false</c>.
+	/// </returns>
+	public static bool operator !=(CoroutineHandle left, CoroutineHandle right) => !(left == right);
 }
-

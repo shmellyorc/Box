@@ -13,7 +13,7 @@ public static class IEnumerableExtentions
 	/// <typeparam name="T">Type of elements in the collection.</typeparam>
 	/// <param name="source">IEnumerable collection to check.</param>
 	/// <returns>True if the collection is empty, false otherwise.</returns>
-	public static bool IsEmpty<T>(this IEnumerable<T> source) => source is null || !source.Any();
+	public static bool IsEmpty<T>(this IEnumerable<T> source) => source == null || !source.Any();
 
 	/// <summary>
 	/// Searches for the specified value and returns the zero-based index of the first occurrence within the IEnumerable collection.

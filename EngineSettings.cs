@@ -635,7 +635,7 @@ public class EngineSettings : GameService
 	public InputMap InputMap { get; internal set; } = new DefaultInputMap();
 	public EngineSettings WithInputMap(InputMap value)
 	{
-		if (value is null)
+		if (value == null)
 			throw new Exception();
 
 		InputMap = value;
@@ -681,7 +681,7 @@ public class EngineSettings : GameService
 
 		for (int i = 0; i < values.Length; i++)
 		{
-			if (values[i] is null)
+			if (values[i] == null)
 				throw new Exception();
 
 			Services[i] = values[i];
@@ -735,7 +735,7 @@ public class EngineSettings : GameService
 	/// </remarks>
 	public EngineSettings WithOnError(Action<Engine, Exception> value)
 	{
-		if (value is null)
+		if (value == null)
 			throw new ArgumentNullException(nameof(value), "Error handler cannot be null.");
 
 		OnError += value;

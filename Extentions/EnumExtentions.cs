@@ -38,12 +38,12 @@ public static class EnumExtentions
 
 		string name = Enum.GetName(typeof(TEnum), value);
 
-		if (name is null)
+		if (name == null)
 			return string.Empty;
 
 		var fieldInfo = typeof(TEnum).GetField(name);
 
-		if (fieldInfo is null)
+		if (fieldInfo == null)
 			return name;
 
 		var attribute = (DescriptionAttribute)Attribute.GetCustomAttribute(fieldInfo, typeof(DescriptionAttribute));

@@ -77,7 +77,7 @@ An ultra‑efficient, code‑first C# game engine built to give you complete con
         game.Start();
     }
 
-    StartGame();;
+    StartGame();
     ```
 
 ## License

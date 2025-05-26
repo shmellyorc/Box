@@ -46,7 +46,7 @@ namespace Box.Entities.Container
         /// </summary>
         protected override void Update()
         {
-            if (Camera is null)
+            if (Camera == null)
                 return;
 
             Position = (Camera.Position - (Renderer.Center)) + Offset;

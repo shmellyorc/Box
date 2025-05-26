@@ -16,7 +16,7 @@ public sealed class Assets : GameService
 	internal static readonly string[] MapSupportedTypes = { ".ldtk" };
 	internal static readonly string[] SheetTypes = { ".sheet" };
 	internal static readonly string[] PackTypes = { ".pack" };
-	private readonly Dictionary<string, IAsset> _assets = new();
+	private readonly Dictionary<uint, IAsset> _assets = new();
 	private BoxPackFile _packFile;
 
 	/// <summary>
@@ -36,7 +36,7 @@ public sealed class Assets : GameService
 	/// </summary>
 	/// <param name="name">The name of the asset to check.</param>
 	/// <returns>True if an asset with the specified name exists; otherwise, false.</returns>
-	public bool Exists(string name) => _assets.ContainsKey(name);
+	public bool Exists(string name) => _assets.ContainsKey(Bx.Hash(name));
 
 	/// <summary>
 	/// Checks if an asset with the specified enum value exists.
@@ -60,7 +60,7 @@ public sealed class Assets : GameService
 		if (Exists(name))
 			return;
 
-		_assets.Add(name, asset);
+		_assets[Bx.Hash(name)] = asset;
 	}
 
 	/// <summary>
@@ -80,12 +80,15 @@ public sealed class Assets : GameService
 	/// <returns>The asset of type T with the specified name, if found; otherwise, default(T).</returns>
 	public T Get<T>(string name) where T : IAsset
 	{
-		if (!Exists(name))
-			return default;
+		if (_assets.TryGetValue(Bx.Hash(name), out var asset))
+			throw new ArgumentException(paramName: nameof(name), message: $"Entry called {name}, doesn't exist");
+		if (asset is not T t)
+			throw new ArgumentException(paramName: nameof(T), 
+				message: $"Type is '{asset.GetType().Name}' but you choosed '{nameof(T)}'");
 
-		_assets[name].Initialize();
+		t.Initialize();
 
-		return (T)_assets[name];
+		return t;
 	}
 
 	/// <summary>
@@ -104,7 +107,7 @@ public sealed class Assets : GameService
 	/// <returns>The asset of type T loaded from the specified file, if found; otherwise, default(T).</returns>
 	public T GetFromFile<T>(string filename) where T : IAsset
 	{
-		var fullPath = Path.GetFullPath(filename.Replace("..", GetService<Engine>().AppContent));
+		string fullPath = Path.GetFullPath(filename.Replace("..", GetService<Engine>().AppContent));
 
 		foreach (var asset in _assets)
 		{
@@ -178,15 +181,23 @@ public sealed class Assets : GameService
 	/// <returns>True if the asset with the specified name was successfully removed; otherwise, false.</returns>
 	public bool Remove(string name)
 	{
-		if (!Exists(name))
+		if (_assets.TryGetValue(Bx.Hash(name), out _))
 			return false;
 
-		if (File.Exists(_assets[name].Filename))
-			Bytes = Math.Max(Bytes - FileHelpers.GetFileSize(_assets[name].Filename), 0);
+		return Remove(Bx.Hash(name));
+	}
 
-		_assets[name].Dispose();
+	internal bool Remove(uint id)
+	{
+		if (!_assets.TryGetValue(id, out var asset))
+			return false;
 
-		return _assets.Remove(name);
+		if (File.Exists(asset.Filename))
+			Bytes = Math.Max(Bytes - FileHelpers.GetFileSize(_assets[id].Filename), 0);
+
+		asset.Dispose();
+
+		return _assets.Remove(id);
 	}
 
 	/// <summary>
@@ -246,7 +257,7 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var path = GetFile(filename);
+		string path = GetFile(filename);
 
 		if (path.IsEmpty() || !File.Exists(path))
 			throw new FileNotFoundException($"Unable to find asset '{filename}' from '{GetService<Engine>().AppContent}'", path);
@@ -272,9 +283,9 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var a = GetService<Assets>();
+		Assets a = GetService<Assets>();
 
-		if (_packFile is null)
+		if (_packFile == null)
 		{
 			var path = GetFile(filename);
 
@@ -314,8 +325,8 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var path = GetFile(filename);
-		var a = GetService<Assets>();
+		string path = GetFile(filename);
+		Assets a = GetService<Assets>();
 
 		if (path.IsEmpty() || !File.Exists(path))
 			throw new FileNotFoundException($"Unable to find asset '{filename}' from '{GetService<Engine>().AppContent}'", path);
@@ -376,11 +387,11 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var a = GetService<Assets>();
+		Assets a = GetService<Assets>();
 
 		if (_packFile is null)
 		{
-			var path = GetFile(filename);
+			string path = GetFile(filename);
 
 			if (path.IsEmpty() || !File.Exists(path))
 				throw new FileNotFoundException($"Unable to find asset '{filename}' from '{GetService<Engine>().AppContent}'", path);
@@ -419,9 +430,9 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var a = GetService<Assets>();
+		Assets a = GetService<Assets>();
 
-		if (_packFile is null)
+		if (_packFile == null)
 		{
 			var path = GetFile(filename);
 
@@ -466,7 +477,7 @@ public sealed class Assets : GameService
 
 		var a = GetService<Assets>();
 
-		if (_packFile is null)
+		if (_packFile == null)
 		{
 			var path = GetFile(filename);
 
@@ -503,9 +514,9 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var a = GetService<Assets>();
+		Assets a = GetService<Assets>();
 
-		if (_packFile is null)
+		if (_packFile == null)
 		{
 			var path = GetFile(filename);
 
@@ -542,9 +553,9 @@ public sealed class Assets : GameService
 		if (filename.IsEmpty())
 			throw new ArgumentNullException(nameof(filename), "Filename is null or empty");
 
-		var a = GetService<Assets>();
+		Assets a = GetService<Assets>();
 
-		if (_packFile is null)
+		if (_packFile == null)
 		{
 			var path = GetFile(filename);
 
@@ -581,7 +592,7 @@ public sealed class Assets : GameService
 	/// <exception cref="ArgumentException">Thrown when the specified name does not correspond to an existing Surface object.</exception>
 	public static Surface GetSurface(string name)
 	{
-		var a = Engine.GetService<Assets>();
+		Assets a = Engine.GetService<Assets>();
 
 		if (!a.Exists(name))
 			throw new ArgumentException($"Unable to find asset of '{name}'!", nameof(name));

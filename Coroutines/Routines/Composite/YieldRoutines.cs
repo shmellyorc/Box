@@ -21,11 +21,10 @@ public static class YieldRoutines
 	public static IEnumerator WaitForAll(params IEnumerator[] routines)
 	{
 		// Fire off each routine
-		var svc = Engine.GetService<Coroutine>();
 		var handles = new List<CoroutineHandle>(routines.Length);
 
 		foreach (var routine in routines)
-			handles.Add(svc.Run(routine));
+			handles.Add(Coroutine.Instance.Run(routine));
 
 		// Wait until none are still running
 		yield return new WaitUntil(() => handles.All(h => !h.IsRunning));
@@ -38,11 +37,10 @@ public static class YieldRoutines
 	/// <returns>An IEnumerator that resumes when any routine has completed.</returns>
 	public static IEnumerator WaitForAny(params IEnumerator[] routines)
 	{
-		var svc = Engine.GetService<Coroutine>();
 		var handles = new List<CoroutineHandle>(routines.Length);
 
 		foreach (var routine in routines)
-			handles.Add(svc.Run(routine));
+			handles.Add(Coroutine.Instance.Run(routine));
 
 		yield return new WaitUntil(() => handles.Any(h => !h.IsRunning));
 	}
@@ -66,15 +64,13 @@ public static class YieldRoutines
 	/// <returns>An IEnumerator that completes when the routine finishes or is canceled due to timeout.</returns>
 	public static IEnumerator WithTimeout(IEnumerator routine, float timeout)
 	{
-		var svc = Engine.GetService<Coroutine>();
-		var svcl = Engine.GetService<Clock>();
 		float elapsed = 0f;
 
-		var handle = svc.Run(routine);
+		var handle = Coroutine.Instance.Run(routine);
 
 		while (handle.IsRunning && elapsed < timeout)
 		{
-			elapsed += svcl.DeltaTime;
+			elapsed += Clock.Instance.DeltaTime;
 			yield return null;
 		}
 
@@ -89,11 +85,10 @@ public static class YieldRoutines
 	/// <returns>An IEnumerator that resumes when one routine completes and all others are canceled.</returns>
 	public static IEnumerator WaitForAnyAndCancel(params IEnumerator[] routines)
 	{
-		var svc = Engine.GetService<Coroutine>();
 		var handles = new List<CoroutineHandle>(routines.Length);
 
 		foreach (var routine in routines)
-			handles.Add(svc.Run(routine));
+			handles.Add(Coroutine.Instance.Run(routine));
 
 		// wait for one to finish
 		yield return new WaitUntil(() => handles.Any(h => !h.IsRunning));
@@ -120,6 +115,13 @@ public static class YieldRoutines
 		yield return new WaitUntil(() => getter() != null);
 	}
 
+	public static IEnumerator WaitUntilNotNullThan<T>(Func<T> getter, Action<T> action) where T : class
+	{
+		yield return new WaitUntil(() => getter() != null);
+
+		action?.Invoke(getter());
+	}
+
 	/// <summary>
 	/// Waits until the value returned by <paramref name="getter"/> is non-null,
 	/// or until the specified timeout (in seconds) elapses.
@@ -139,12 +141,11 @@ public static class YieldRoutines
 	/// </returns>
 	public static IEnumerator WaitUntilNotNull<T>(Func<T> getter, float timeoutSeconds) where T : class
 	{
-		var svc = Engine.GetService<Clock>();
 		float elapsed = 0f;
 
 		while (getter() == null && elapsed < timeoutSeconds)
 		{
-			elapsed += svc.DeltaTime;
+			elapsed += Clock.Instance.DeltaTime;
 
 			yield return null;
 		}

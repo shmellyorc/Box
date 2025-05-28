@@ -87,7 +87,7 @@ public class TimerTrigger : Entity
 		if (!IsRunning)
 			return;
 
-		_elapsed += Clock.DeltaTime;
+		_elapsed += BE.Clock.DeltaTime;
 
 		if (_elapsed >= _time)
 		{

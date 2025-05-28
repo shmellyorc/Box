@@ -5,10 +5,12 @@ namespace Box.Systems;
 /// <summary>
 /// Represents a clock used to measure delta time and real elapsed time.
 /// </summary>
-public sealed class Clock : UpdatableService
+public sealed class Clock
 {
 	private readonly SFMLClock _clock;
 	private SFMLTime _time;
+
+	public static Clock Instance { get; private set; }
 
 	/// <summary>
 	/// DeltaTime displayed in Milliseconds.
@@ -37,6 +39,8 @@ public sealed class Clock : UpdatableService
 
 	internal Clock()
 	{
+		Instance ??= this;
+
 		_clock = new SFMLClock();
 		_time = _clock.Restart();
 		RealTime = 0.0;
@@ -45,7 +49,7 @@ public sealed class Clock : UpdatableService
 	/// <summary>
 	/// Updates the clock, resetting the time and accumulating real time.
 	/// </summary>
-	public override void Update()
+	internal void Update()
 	{
 		_time = _clock.Restart();
 		RealTime += _time.AsSeconds();

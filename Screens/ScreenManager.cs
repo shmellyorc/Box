@@ -6,7 +6,7 @@ namespace Box.Screens;
 /// <summary>
 /// Manages the lifecycle and navigation of screens in the application.
 /// </summary>
-public sealed class ScreenManager : UpdatableService
+public sealed class ScreenManager
 {
 	internal int TotalEntities, TotalTimers/*, _totalRoutines*/;
 
@@ -15,10 +15,10 @@ public sealed class ScreenManager : UpdatableService
 	private IEnumerable<Screen> _orderedScreens;
 	private bool _isDirty = true;
 
-	// /// <summary>
-	// /// Gets the singleton instance of the ScreenManager.
-	// /// </summary>
-	// public static ScreenManager Instance { get; private set; }
+	/// <summary>
+	/// Gets the singleton instance of the ScreenManager.
+	/// </summary>
+	public static ScreenManager Instance { get; private set; }
 
 	/// <summary>
 	/// Gets the number of screens currently managed by the ScreenManager.
@@ -52,9 +52,9 @@ public sealed class ScreenManager : UpdatableService
 
 
 	#region Engine
-	internal ScreenManager() {} /*=> Instance ??= this;*/
+	internal ScreenManager() => Instance ??= this;
 
-	public override void Update()
+	internal void Update()
 	{
 		if (_isDirty)
 		{
@@ -71,7 +71,7 @@ public sealed class ScreenManager : UpdatableService
 			TotalEntities = 0;
 			TotalTimers = 0;
 
-			bool isActive = GetService<Engine>().IsActive;
+			bool isActive = Engine.Instance.IsActive;
 			ActiveScreen = _orderedScreens
 				.Reverse()
 				.FirstOrDefault(x => !x.IsUiScreen);
@@ -91,8 +91,6 @@ public sealed class ScreenManager : UpdatableService
 				Renderer.Instance.End();
 			}
 		}
-
-		base.Update();
 	}
 	#endregion
 

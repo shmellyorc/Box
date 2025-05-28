@@ -43,7 +43,7 @@ public class ColorRect : Entity
 
 		if (!AnyParentOfType<BoxRenderTarget>(out var target))
 		{
-			Renderer.Draw(_surface,
+			BE.Renderer.Draw(_surface,
 				new Rect2(Position.X, Position.Y, Size.X, Size.Y), Color, Layer);
 		}
 		else
@@ -52,7 +52,7 @@ public class ColorRect : Entity
 				new Rect2(Position.X - target.Position.X, Position.Y - target.Position.Y, Size.X, Size.Y), Color, Layer);
 		}
 
-		if (GetService<EngineSettings>().DebugDraw)
-			Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Orange);
+		if (EngineSettings.Instance.DebugDraw)
+			BE.Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Orange);
 	}
 }

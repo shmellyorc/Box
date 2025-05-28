@@ -14,5 +14,5 @@ public class UpdatableService : GameService
 	/// <summary>
 	/// Called once per frame to update the service's logic. Override to implement custom update behavior.
 	/// </summary>
-	public virtual void Update() { }
+	public virtual void Update(float dt) { }
 }

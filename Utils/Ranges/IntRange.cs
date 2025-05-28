@@ -123,7 +123,7 @@ public struct IntRange
 	/// <summary>
 	/// Returns a random integer between Min and Max using the global Rand instance.
 	/// </summary>
-	public readonly int Random() => Engine.GetService<FastRandom>().Range(_min, _max);
+	public readonly int Random() => FastRandom.Instance.Range(_min, _max);
 
 	/// <summary>
 	/// Returns a string representation of the range and current value.

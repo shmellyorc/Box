@@ -3,103 +3,54 @@ namespace Box.Coroutines;
 /// <summary>
 /// Represents a handle to a running coroutine, allowing control and status queries.
 /// </summary>
-public readonly struct CoroutineHandle : IDisposable, IEquatable<CoroutineHandle>
+public struct CoroutineHandle
 {
-	private static readonly Coroutine Svc = Engine.GetService<Coroutine>();
+	/// <summary>
+	/// Reference to the routine's runner.
+	/// </summary>
+	public Coroutine Runner;
 
 	/// <summary>
-	/// Represents an uninitialized or non-existent coroutine handle.
+	/// Reference to the routine's enumerator.
 	/// </summary>
-	public static readonly CoroutineHandle None = default;
+	public IEnumerator Enumerator;
 
 	/// <summary>
-	/// The underlying IEnumerator of the coroutine.
+	/// Construct a coroutine. Never call this manually, only use return values from Coroutines.Run().
 	/// </summary>
-	public IEnumerator Enumerator { get; }
+	/// <param name="runner">The routine's runner.</param>
+	/// <param name="enumerator">The routine's enumerator.</param>
+	public CoroutineHandle(Coroutine runner, IEnumerator enumerator)
+	{
+		Runner = runner;
+		Enumerator = enumerator;
+	}
 
 	/// <summary>
-	/// Indicates whether this handle references a valid coroutine.
+	/// Stop this coroutine if it is running.
 	/// </summary>
-	public bool IsValid => Enumerator != null;
+	/// <returns>True if the coroutine was stopped.</returns>
+	public bool Stop()
+	{
+		return IsRunning && Runner.Stop(Enumerator);
+	}
 
 	/// <summary>
-	/// Indicates whether the referenced coroutine is currently running.
+	/// A routine to wait until this coroutine has finished running.
 	/// </summary>
-	public bool IsRunning => IsValid && Svc.IsRunning(Enumerator);
-
-	internal CoroutineHandle(IEnumerator routine) => Enumerator = routine;
+	/// <returns>The wait enumerator.</returns>
+	public IEnumerator Wait()
+	{
+		if (Enumerator != null)
+			while (Runner.IsRunning(Enumerator))
+				yield return null;
+	}
 
 	/// <summary>
-	/// Stops the referenced coroutine if it is running.
+	/// True if the enumerator is currently running.
 	/// </summary>
-	/// <returns><c>true</c> if the coroutine was successfully stopped; otherwise, <c>false</c>.</returns>
-	public bool Stop() => IsRunning && Svc.Stop(Enumerator);
-
-	/// <summary>
-	/// Disposes the coroutine handle by stopping the coroutine if it is running.
-	/// </summary>
-	public void Dispose() => Stop();
-
-	/// <summary>
-	/// Implicitly converts the handle to <c>true</c> if the coroutine is running.
-	/// </summary>
-	/// <param name="h">The coroutine handle to evaluate.</param>
-	/// <returns><c>true</c> if <paramref name="h"/> is running; otherwise, <c>false</c>.</returns>
-	public static implicit operator bool(CoroutineHandle h) => h.IsRunning;
-
-	/// <summary>
-	/// Determines whether this instance and another specified <see cref="CoroutineHandle"/> have the same 
-	/// underlying routine.
-	/// </summary>
-	/// <param name="other">The other coroutine handle to compare.</param>
-	/// <returns><c>true</c> if both handles reference the same coroutine; otherwise, <c>false</c>.</returns>
-
-	public readonly bool Equals(CoroutineHandle other) =>
-		Enumerator == other.Enumerator;
-
-	/// <summary>
-	/// Determines whether this instance and a specified object, which must also be a <see cref="CoroutineHandle"/>, 
-	/// have the same value.
-	/// </summary>
-	/// <param name="obj">The object to compare to this instance.</param>
-	/// <returns><c>true</c> if <paramref name="obj"/> is a <see cref="CoroutineHandle"/> and references the same 
-	/// coroutine; otherwise, <c>false</c>.
-	/// </returns>
-	public readonly override bool Equals(object obj) =>
-		obj is CoroutineHandle h && Equals(h);
-
-	/// <summary>
-	/// Returns the hash code for this coroutine handle.
-	/// </summary>
-	/// <returns>An integer hash code representing the handle.</returns>
-	public readonly override int GetHashCode() =>
-		Enumerator?.GetHashCode() ?? 0;
-
-	/// <summary>
-	/// Returns a string that represents the current coroutine handle.
-	/// </summary>
-	/// <returns>A string representation of this handle, including the routine and its running state.</returns>
-	public readonly override string ToString() =>
-		$"CoroutineHandle[{Enumerator}, Running={IsRunning}]";
-
-	/// <summary>
-	/// Determines whether two <see cref="CoroutineHandle"/> instances are equal,
-	/// by comparing their underlying enumerators.
-	/// </summary>
-	/// <param name="left">The first handle to compare.</param>
-	/// <param name="right">The second handle to compare.</param>
-	/// <returns>
-	/// <c>true</c> if both handles refer to the same coroutine; otherwise <c>false</c>.
-	/// </returns>
-	public static bool operator ==(CoroutineHandle left, CoroutineHandle right) => left.Equals(right);
-
-	/// <summary>
-	/// Determines whether two <see cref="CoroutineHandle"/> instances are not equal.
-	/// </summary>
-	/// <param name="left">The first handle to compare.</param>
-	/// <param name="right">The second handle to compare.</param>
-	/// <returns>
-	/// <c>true</c> if the handles refer to different coroutines; otherwise <c>false</c>.
-	/// </returns>
-	public static bool operator !=(CoroutineHandle left, CoroutineHandle right) => !(left == right);
+	public bool IsRunning
+	{
+		get { return Enumerator != null && Runner.IsRunning(Enumerator); }
+	}
 }

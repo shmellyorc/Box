@@ -20,37 +20,37 @@ public class GameService
 	/// <summary>
 	/// Gets the singleton instance of the core engine.
 	/// </summary>
-	protected Engine Engine => GetService<Engine>();
+	protected Engine Engine => Engine.Instance;
 
 	/// <summary>
 	/// Gets the coroutine manager for async and delayed operations.
 	/// </summary>
-	protected Coroutine Coroutine => GetService<Coroutine>();
+	protected Coroutine Coroutine => Coroutine.Instance;
 
 	/// <summary>
 	/// Gets the screen manager responsible for scene stack and transitions.
 	/// </summary>
-	protected ScreenManager ScreenManager => GetService<ScreenManager>();
+	protected ScreenManager ScreenManager => ScreenManager.Instance;
 
 	/// <summary>
 	/// Gets the asset manager for loading and accessing game content.
 	/// </summary>
-	protected Assets Assets => GetService<Assets>();
+	protected Assets Assets => Assets.Instance;
 
 	/// <summary>
 	/// Gets the sound manager for handling sound effects and music playback.
 	/// </summary>
-	protected SoundManager SoundManager => GetService<SoundManager>();
+	protected SoundManager SoundManager => SoundManager.Instance;
 
 	/// <summary>
 	/// Gets the renderer used for all drawing and batching operations.
 	/// </summary>
-	protected Renderer Renderer => GetService<Renderer>();
+	protected Renderer Renderer => Renderer.Instance;
 
 	/// <summary>
 	/// Gets the signal/event system for decoupled communication.
 	/// </summary>
-	protected Signal Signal => GetService<Signal>();
+	protected Signal Signal => Signal.Instance;
 
 	/// <summary>
 	/// Gets the current input map from the engine (keyboard, gamepad, etc.).
@@ -60,17 +60,17 @@ public class GameService
 	/// <summary>
 	/// Gets the engine's clock, used for tracking time and delta updates.
 	/// </summary>
-	protected Clock Clock => GetService<Clock>();
+	protected Clock Clock => Clock.Instance;
 
 	/// <summary>
 	/// Gets the engine's logging system.
 	/// </summary>
-	protected Log Log => GetService<Log>();
+	protected Log Log => Log.Instance;
 
 	/// <summary>
 	/// Gets the engine's random number generator.
 	/// </summary>
-	protected FastRandom Rand => Engine.GetService<FastRandom>();
+	protected FastRandom Rand => FastRandom.Instance;
 
 	/// <summary>
 	/// Retrieves a registered engine service of the specified type.
@@ -78,7 +78,7 @@ public class GameService
 	/// <typeparam name="T">The type of the service to retrieve.</typeparam>
 	/// <returns>The singleton instance of the service, or <c>null</c> if not registered.</returns>
 	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	protected T GetService<T>() where T : GameService => Engine.GetService<T>();
+	protected T GetService<T>() where T : GameService => ServiceManager.Instance.GetService<T>();
 
 	#endregion
 

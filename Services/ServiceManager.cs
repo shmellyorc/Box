@@ -6,14 +6,16 @@ namespace Box.Services;
 /// Represents a collection of services that can be added and accessed within the application.
 /// </summary>
 /// <remarks>
-/// This class implements the <see cref="GameService"/> and acts as a container for storing services.
+/// This class implements the <see cref="ServiceManager"/> and acts as a container for storing services.
 /// It allows services to be added dynamically and provides access to the collection of registered services.
 /// </remarks>
-public sealed class ServiceCollection : GameService
+public sealed class ServiceManager
 {
+	public static ServiceManager Instance { get; private set; }
+
 	// Improving to get O(1) lookups:
 	private readonly Dictionary<Type, GameService> _services = new();
-	private readonly List<UpdatableService> _updatableService = new();
+	private readonly List<UpdatableService> _updatableServices = new();
 
 	/// <summary>
 	/// Gets a read-only list of all currently registered game services.
@@ -22,7 +24,11 @@ public sealed class ServiceCollection : GameService
 	/// This provides a snapshot of the service collection at the time of access.
 	/// Each service in the list derives from <see cref="GameService"/>.
 	/// </remarks>
-	public IReadOnlyList<GameService> Services => _services.Values.ToList();
+	public IEnumerable<GameService> Services => _services.Values;
+
+
+	internal ServiceManager() => Instance ??= this;
+
 
 	/// <summary>
 	/// Registers a <see cref="GameService"/> instance by its concrete type. 
@@ -31,46 +37,38 @@ public sealed class ServiceCollection : GameService
 	/// <param name="service">The service instance to register.</param>
 	/// <exception cref="ArgumentNullException">Thrown if the service instance is <c>null</c>.</exception>
 	/// <exception cref="InvalidOperationException">Thrown if a service of the same type is already registered.</exception>
-	public void RegisterService(GameService service)
+	public void RegisterService<T>(T service) where T : GameService
 	{
-		if (service == null)
-			throw new ArgumentNullException(nameof(service), "Cannot register a null service instance.");
+		if (service is null)
+			throw new ArgumentNullException(nameof(service));
+		if (_services.ContainsKey(typeof(T)))
+			throw new InvalidOperationException($"Service {typeof(T).Name} already registered.");
 
-		var type = service.GetType();
-		if (_services.TryGetValue(type, out _))
-			throw new InvalidOperationException($"A service of type '{type.FullName}' is already registered.");
+		_services[typeof(T)] = service;
 
-		_services[service.GetType()] = service;
-
-		if (service is UpdatableService udService)
-			_updatableService.Add(udService);
+		if (service is UpdatableService u)
+			_updatableServices.Add(u);
 
 		service.Initialize();
 	}
 
 	public void RegisterManyServices(params GameService[] services)
 	{
-		if (services.IsEmpty())
+		if (services == null || services.Length == 0)
 			return;
 
-		for (int i = 0; i < services.Length; i++)
+		foreach (var service in services)
 		{
-			if (services[i] == null)
-				throw new ArgumentNullException($"{services[i].GetType().Name} is null, cannot register a null service instance.");
+			if (service is null)
+				throw new ArgumentNullException(nameof(service));
+			if (_services.ContainsKey(service.GetType()))
+				throw new InvalidOperationException($"Service {service.GetType().Name} already registered.");
 
-			var type = services[i].GetType();
-			if (_services.TryGetValue(type, out _))
-				throw new InvalidOperationException($"A service of type '{type.FullName}' is already registered.");
-
-			_services[type] = services[i];
-
-			if (services[i] is UpdatableService udService)
-				_updatableService.Add(udService);
+			_services[service.GetType()] = service;
 		}
 
-		// initialize after inserted, to make sure those services don't rely on each other:
-		for (int i = 0; i < services.Length; i++)
-			services[i].Initialize();
+		foreach (var service in services)
+			service.Initialize();
 	}
 
 	/// <summary>
@@ -90,33 +88,28 @@ public sealed class ServiceCollection : GameService
 	/// <returns><c>true</c> if the service was found and assigned; otherwise, <c>false</c>.</returns>
 	public bool TryGetService<T>(out T service) where T : GameService
 	{
-		service = GetService<T>();
-
-		return service != null;
+		if (_services.TryGetValue(typeof(T), out var gs) && gs is T casted)
+		{
+			service = casted;
+			return true;
+		}
+		service = null;
+		return false;
 	}
 
 	/// <summary>
-	/// Retrieves a registered service of the specified type.
+	/// Retrieves a registered GameService of the specified type, or null if none is found.
 	/// </summary>
-	/// <typeparam name="T">The concrete type of the <see cref="GameService"/> to retrieve.</typeparam>
-	/// <returns>
-	/// The registered service instance if found; otherwise, <c>null</c>.
-	/// </returns>
-	public T GetService<T>() where T : GameService =>
-		_services.TryGetValue(typeof(T), out var obj) && obj is T casted
-			? casted : default;
+	/// <typeparam name="T">The concrete service type to retrieve.</typeparam>
+	/// <returns>The service instance, or null.</returns>
+	public T? GetService<T>() where T : GameService
+		=> _services.TryGetValue(typeof(T), out var svc)
+			 ? svc as T
+			 : null;
 
-	internal void Update()
+	internal void Update(float dt)
 	{
-		if (_updatableService.Count == 0)
-			return;
-
-		for (int i = _updatableService.Count - 1; i >= 0; i--)
-		{
-			if (!_updatableService[i].Enabled)
-				continue;
-
-			_updatableService[i].Update();
-		}
+		foreach (var svc in _updatableServices)
+			if (svc.Enabled) svc.Update(dt);
 	}
 }

@@ -98,7 +98,7 @@ public static class EnumExtentions
 	/// <param name="text">The text to measure.</param>
 	/// <returns>The dimensions (width and height) of the rendered text.</returns>
 	public static Vect2 Measure(this Enum value, string text)
-		=> Engine.GetService<Assets>().Get<BoxFont>(value).Measure(text);
+		=> Assets.Instance.Get<BoxFont>(value).Measure(text);
 
 	/// <summary>
 	/// Measures the width of a specified text using the font associated with the enum value.
@@ -107,7 +107,7 @@ public static class EnumExtentions
 	/// <param name="text">The text to measure.</param>
 	/// <returns>The width of the rendered text.</returns>
 	public static float MeasureWidth(this Enum value, string text)
-		=> Engine.GetService<Assets>().Get<BoxFont>(value).MeasureWidth(text);
+		=> Assets.Instance.Get<BoxFont>(value).MeasureWidth(text);
 
 	/// <summary>
 	/// Measures the height of a specified text using the font associated with the enum value.
@@ -116,7 +116,7 @@ public static class EnumExtentions
 	/// <param name="text">The text to measure.</param>
 	/// <returns>The height of the rendered text.</returns>
 	public static float MeasureHeight(this Enum value, string text)
-		=> Engine.GetService<Assets>().Get<BoxFont>(value).MeasureHeight(text);
+		=> Assets.Instance.Get<BoxFont>(value).MeasureHeight(text);
 
 	/// <summary>
 	/// Formats a text string to fit within a specified width using the font associated with the enum value.

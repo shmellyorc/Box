@@ -246,7 +246,7 @@ public class AnimatedSprite : Entity
 
 		if (_animations.Remove(name))
 		{
-			Coroutine.Stop(_routine);
+			BE.Coroutine.Stop(_routine);
 
 			return true;
 		}
@@ -361,7 +361,7 @@ public class AnimatedSprite : Entity
 		_frame = Math.Clamp(_frameIndex, 0, _animation.Frames.Length - 1);
 
 		if (!AnyParentOfType<BoxRenderTarget>(out var target))
-			Renderer.Draw(_animation.Surface, Position + Alignment(), _animation.Frames[_frame], Effect, Color, Layer);
+			BE.Renderer.Draw(_animation.Surface, Position + Alignment(), _animation.Frames[_frame], Effect, Color, Layer);
 		else
 			target.Draw(_animation.Surface, Position - target.Position + Alignment(), _animation.Frames[_frame], Effect, Color, Layer);
 	}
@@ -480,7 +480,7 @@ public class AnimatedSprite : Entity
 		}
 
 		if (_routine.IsRunning)
-			Coroutine.Stop(_routine);
+			BE.Coroutine.Stop(_routine);
 
 		_frameIndex = reset ? 0 : Math.Clamp(_frameIndex, 0, _animations[name].Frames.Length - 1);
 		_animation = _animations[name];
@@ -491,7 +491,7 @@ public class AnimatedSprite : Entity
 
 		State = AnimationState.Playing;
 
-		Signal.Emit(EngineSignals.AnimatedSpriteStarted, this, _animation);
+		BE.Signal.Emit(EngineSignals.AnimatedSpriteStarted, this, _animation);
 
 		if (!_sizeChanged)
 			Size = _animation.Frames[_frame].Size;

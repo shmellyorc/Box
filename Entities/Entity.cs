@@ -1,6 +1,8 @@
 using System.Runtime.CompilerServices;
 
+using Box.Coroutines.Routines.Conditional;
 using Box.Graphics.Batch;
+using Box.Services;
 using Box.Services.Types;
 
 namespace Box.Entities;
@@ -189,9 +191,10 @@ public class Entity
 			_visible = value;
 
 			if (Screen == null)
-				// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
-				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen,
-					(screen) => Emit(EngineSignals.ScreenDirty, screen)));
+				StartRoutine(WaitForNullScreenThanEmitDirty());
+			// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
+			// Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen,
+			// 	(screen) => Emit(EngineSignals.ScreenDirty, screen)));
 			else
 				// Screen._isDirty = true;
 				Emit(EngineSignals.ScreenDirty, Screen);
@@ -218,8 +221,9 @@ public class Entity
 			_keepAlive = value;
 
 			if (Screen == null)
-				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen)
-					=> Emit(EngineSignals.ScreenDirty, screen)));
+				StartRoutine(WaitForNullScreenThanEmitDirty());
+			// Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen)
+			// 	=> Emit(EngineSignals.ScreenDirty, screen)));
 			else
 				Emit(EngineSignals.ScreenDirty, Screen);
 		}
@@ -245,9 +249,10 @@ public class Entity
 			_layer = value;
 
 			if (Screen == null)
-				// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
-				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(()
-					=> Screen, (screen) => Emit(EngineSignals.ScreenDirty, screen)));
+				StartRoutine(WaitForNullScreenThanEmitDirty());
+			// Coroutine.Instance.Run(CoroutineHelper.WaitForNullObject(() => Screen, (screen) => screen._isDirty = true));
+			// Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(()
+			// 	=> Screen, (screen) => Emit(EngineSignals.ScreenDirty, screen)));
 			else
 				// Screen._isDirty = true;
 				Emit(EngineSignals.ScreenDirty, Screen);
@@ -286,8 +291,9 @@ public class Entity
 			_position = value;
 
 			if (Screen == null)
-				Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen) =>
-					Emit(EngineSignals.ScreenDirty, screen)));
+				StartRoutine(WaitForNullScreenThanEmitDirty());
+			// Coroutine.Run(CoroutineHelper.WaitForObject<Screen>(() => Screen, (screen) =>
+			// 	Emit(EngineSignals.ScreenDirty, screen)));
 			else
 			{
 				Emit(EngineSignals.ScreenDirty, Screen);
@@ -320,193 +326,199 @@ public class Entity
 
 			if (Screen == null)
 			{
-				Coroutine.Run(
-					CoroutineHelper.WaitForObject<Screen>(()
-						=> Screen, (screen) => Emit(EngineSignals.ScreenDirty, screen))
-				);
+				// Coroutine.Run(
+				// 	CoroutineHelper.WaitForObject<Screen>(()
+				// 		=> Screen, (screen) => Emit(EngineSignals.ScreenDirty, screen))
+				// );
+				StartRoutine(WaitForNullScreenThanEmitDirty());
 			}
 			else
 				Emit(EngineSignals.ScreenDirty, Screen);
 		}
 	}
 
-
-
-	#region Helpers
-	/// <summary>
-	/// Gets the instance of the screen manager.
-	/// </summary>
-	protected ScreenManager ScreenManager => Engine.GetService<ScreenManager>();
-
-	/// <summary>
-	/// Gets the instance of the assets manager.
-	/// </summary>
-	protected Assets Assets => Engine.GetService<Assets>();
-
-	/// <summary>
-	/// Gets the instance of the game engine.
-	/// </summary>
-	protected Engine Engine => Engine.GetService<Engine>();
-
-	/// <summary>
-	/// Gets the input map from the game engine.
-	/// </summary>
-	protected InputMap Input => Engine.Input;
-
-	/// <summary>
-	/// Gets the instance of the game clock.
-	/// </summary>
-	protected Clock Clock => Engine.GetService<Clock>();
-
-	/// <summary>
-	/// Gets the instance of the signal manager.
-	/// </summary>
-	protected Signal Signal => Engine.GetService<Signal>();
-
-	/// <summary>
-	/// Gets the instance of the coroutine manager.
-	/// </summary>
-	protected Coroutine Coroutine => Engine.GetService<Coroutine>();
-
-	/// <summary>
-	/// Gets the instance of the renderer.
-	/// </summary>
-	protected Renderer Renderer => Engine.GetService<Renderer>();
-
-	/// <summary>
-	/// Gets the instance of the random number generator.
-	/// </summary>
-	protected FastRandom Rand => Engine.GetService<FastRandom>();
-
-	/// <summary>
-	/// Gets the instance of the sound manager.
-	/// </summary>
-	protected SoundManager SoundManager => Engine.GetService<SoundManager>();
-
-	/// <summary>
-	/// Gets the instance of the logging system.
-	/// </summary>
-	protected Log Log => Engine.GetService<Log>();
-
-	/// <summary>
-	/// Gets a singleton instance of a specified type.
-	/// </summary>
-	/// <typeparam name="T">The type of singleton to retrieve.</typeparam>
-	/// <returns>The singleton instance of type T.</returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	protected T GetService<T>() where T : GameService => Box.Engine.GetService<T>();
-
-	/// <summary>
-	/// Retrieves a Surface object by name from the Assets manager.
-	/// </summary>
-	/// <param name="name">The name of the Surface.</param>
-	/// <returns>The Surface object associated with the name.</returns>
-	protected Surface GetSurface(string name) => Assets.Get<Surface>(name);
-
-	/// <summary>
-	/// Retrieves a Surface object by enum value from the Assets manager.
-	/// </summary>
-	/// <param name="name">The enum value representing the name of the Surface.</param>
-	/// <returns>The Surface object associated with the enum value.</returns>
-	protected Surface GetSurface(Enum name) => Assets.Get<Surface>(name);
-
-	/// <summary>
-	/// Retrieves a Surface object by filename from the Assets manager.
-	/// </summary>
-	/// <param name="filename">The filename of the Surface.</param>
-	/// <returns>The Surface object loaded from the specified file.</returns>
-	protected Surface GetSurfaceFromFile(string filename) => Assets.GetFromFile<Surface>(filename);
-
-	/// <summary>
-	/// Retrieves a Surface object from a MapTileset object.
-	/// </summary>
-	/// <param name="tileset">The MapTileset containing the filename of the Surface.</param>
-	/// <returns>The Surface object loaded from the tileset's filename.</returns>
-	protected Surface GetSurfaceFromTileset(MapTileset tileset) => Assets.GetFromFile<Surface>(tileset.Filename);
-
-	/// <summary>
-	/// Retrieves a <see cref="Surface"/> from a tileset in the given <see cref="Map"/> by its unique tileset ID.
-	/// </summary>
-	/// <param name="map">The map containing the tileset collection.</param>
-	/// <param name="id">The unique ID of the tileset to retrieve the surface for.</param>
-	/// <returns>The <see cref="Surface"/> associated with the specified tileset ID.</returns>
-	/// <exception cref="KeyNotFoundException">
-	/// Thrown if no tileset with the specified ID is found in the map.
-	/// </exception>
-	protected Surface GetSurfaceFromTileset(Map map, int id)
+	private IEnumerator WaitForNullScreenThanEmitDirty()
 	{
-		var element = map.Tilesets
-			.Select(x => x.Value)
-			.FirstOrDefault(x => x.Id == id);
+		yield return new WaitUntil(() => Screen != null);
 
-		if (element.IsEmpty)
-			throw new KeyNotFoundException($"Unable to find tileset with ID '{id}' in the provided map.");
-
-		return GetSurfaceFromTileset(element);
+		Emit(EngineSignals.ScreenDirty, Screen);
 	}
 
-	/// <summary>
-	/// Retrieves a Surface object from a MapTileset object from BoxPack.
-	/// </summary>
-	/// <param name="tileset">The MapTileset containing the filename of the Surface.</param>
-	/// <returns>The Surface object loaded from the tileset's filename.</returns>
-	protected Surface GetTilesetSurfaceFromPack(MapTileset tileset) => Assets.GetFromPack<Surface>(tileset.Filename);
+	#region Helpers
+	// /// <summary>
+	// /// Gets the instance of the screen manager.
+	// /// </summary>
+	// protected ScreenManager ScreenManager => ScreenManager;
 
-	/// <summary>
-	/// Retrieves a Map object by name from the Assets manager.
-	/// </summary>
-	/// <param name="name">The name of the Map.</param>
-	/// <returns>The Map object associated with the name.</returns>
-	protected Map GetMap(string name) => Assets.Get<Map>(name);
+	// /// <summary>
+	// /// Gets the instance of the assets manager.
+	// /// </summary>
+	// protected Assets Assets => Assets.Instance;
 
-	/// <summary>
-	/// Retrieves a Map object by enum value from the Assets manager.
-	/// </summary>
-	/// <param name="name">The enum value representing the name of the Map.</param>
-	/// <returns>The Map object associated with the enum value.</returns>
-	protected Map GetMap(Enum name) => Assets.Get<Map>(name);
+	// /// <summary>
+	// /// Gets the instance of the game engine.
+	// /// </summary>
+	// protected Engine Engine => Engine.Instance;
 
-	/// <summary>
-	/// Retrieves a Sound object by name from the Assets manager.
-	/// </summary>
-	/// <param name="name">The name of the Sound.</param>
-	/// <returns>The Sound object associated with the name.</returns>
-	protected Sound GetSound(string name) => Assets.Get<Sound>(name);
+	// /// <summary>
+	// /// Gets the input map from the game engine.
+	// /// </summary>
+	// protected InputMap Input => Engine.Input;
 
-	/// <summary>
-	/// Retrieves a Sound object by enum value from the Assets manager.
-	/// </summary>
-	/// <param name="name">The enum value representing the name of the Sound.</param>
-	/// <returns>The Sound object associated with the enum value.</returns>
-	protected Sound GetSound(Enum name) => Assets.Get<Sound>(name);
+	// /// <summary>
+	// /// Gets the instance of the game clock.
+	// /// </summary>
+	// protected Clock Clock => Clock.Instance;
 
-	/// <summary>
-	/// Retrieves a Font object by name from the Assets manager.
-	/// </summary>
-	/// <param name="name">The name of the Font.</param>
-	/// <returns>The Font object associated with the name.</returns>
-	protected BoxFont GetFont(string name) => Assets.Get<BoxFont>(name);
+	// /// <summary>
+	// /// Gets the instance of the signal manager.
+	// /// </summary>
+	// protected Signal Signal => Signal.Instance;
 
-	/// <summary>
-	/// Retrieves a Font object by enum value from the Assets manager.
-	/// </summary>
-	/// <param name="name">The enum value representing the name of the Font.</param>
-	/// <returns>The Font object associated with the enum value.</returns>
-	protected BoxFont GetFont(Enum name) => Assets.Get<BoxFont>(name);
+	// /// <summary>
+	// /// Gets the instance of the coroutine manager.
+	// /// </summary>
+	// protected Coroutine Coroutine => Coroutine.Instance;
 
-	/// <summary>
-	/// Retrieves a Spritesheet object by name from the Assets manager.
-	/// </summary>
-	/// <param name="name">The name of the Spritesheet.</param>
-	/// <returns>The Spritesheet object associated with the name.</returns>
-	protected Spritesheet GetSheet(string name) => Assets.Get<Spritesheet>(name);
+	// /// <summary>
+	// /// Gets the instance of the renderer.
+	// /// </summary>
+	// protected Renderer Renderer => Renderer.Instance;
 
-	/// <summary>
-	/// Retrieves a Spritesheet object by enum value from the Assets manager.
-	/// </summary>
-	/// <param name="name">The enum value representing the name of the Spritesheet.</param>
-	/// <returns>The Spritesheet object associated with the enum value.</returns>
-	protected Spritesheet GetSheet(Enum name) => Assets.Get<Spritesheet>(name);
+	// /// <summary>
+	// /// Gets the instance of the random number generator.
+	// /// </summary>
+	// protected FastRandom Rand => FastRandom.Instance;
+
+	// /// <summary>
+	// /// Gets the instance of the sound manager.
+	// /// </summary>
+	// protected SoundManager SoundManager => SoundManager.Instance;
+
+	// /// <summary>
+	// /// Gets the instance of the logging system.
+	// /// </summary>
+	// protected Log Log => Log.Instance;
+
+	// /// <summary>
+	// /// Gets a singleton instance of a specified type.
+	// /// </summary>
+	// /// <typeparam name="T">The type of singleton to retrieve.</typeparam>
+	// /// <returns>The singleton instance of type T.</returns>
+	// [MethodImpl(MethodImplOptions.AggressiveInlining)]
+	// protected T GetService<T>() where T : GameService => ServiceManager.Instance.GetService<T>();
+
+	// /// <summary>
+	// /// Retrieves a Surface object by name from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The name of the Surface.</param>
+	// /// <returns>The Surface object associated with the name.</returns>
+	// protected Surface GetSurface(string name) => Assets.Get<Surface>(name);
+
+	// /// <summary>
+	// /// Retrieves a Surface object by enum value from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The enum value representing the name of the Surface.</param>
+	// /// <returns>The Surface object associated with the enum value.</returns>
+	// protected Surface GetSurface(Enum name) => Assets.Get<Surface>(name);
+
+	// /// <summary>
+	// /// Retrieves a Surface object by filename from the Assets manager.
+	// /// </summary>
+	// /// <param name="filename">The filename of the Surface.</param>
+	// /// <returns>The Surface object loaded from the specified file.</returns>
+	// protected Surface GetSurfaceFromFile(string filename) => Assets.GetFromFile<Surface>(filename);
+
+	// /// <summary>
+	// /// Retrieves a Surface object from a MapTileset object.
+	// /// </summary>
+	// /// <param name="tileset">The MapTileset containing the filename of the Surface.</param>
+	// /// <returns>The Surface object loaded from the tileset's filename.</returns>
+	// protected Surface GetSurfaceFromTileset(MapTileset tileset) => Assets.GetFromFile<Surface>(tileset.Filename);
+
+	// /// <summary>
+	// /// Retrieves a <see cref="Surface"/> from a tileset in the given <see cref="Map"/> by its unique tileset ID.
+	// /// </summary>
+	// /// <param name="map">The map containing the tileset collection.</param>
+	// /// <param name="id">The unique ID of the tileset to retrieve the surface for.</param>
+	// /// <returns>The <see cref="Surface"/> associated with the specified tileset ID.</returns>
+	// /// <exception cref="KeyNotFoundException">
+	// /// Thrown if no tileset with the specified ID is found in the map.
+	// /// </exception>
+	// protected Surface GetSurfaceFromTileset(Map map, int id)
+	// {
+	// 	var element = map.Tilesets
+	// 		.Select(x => x.Value)
+	// 		.FirstOrDefault(x => x.Id == id);
+
+	// 	if (element.IsEmpty)
+	// 		throw new KeyNotFoundException($"Unable to find tileset with ID '{id}' in the provided map.");
+
+	// 	return GetSurfaceFromTileset(element);
+	// }
+
+	// /// <summary>
+	// /// Retrieves a Surface object from a MapTileset object from BoxPack.
+	// /// </summary>
+	// /// <param name="tileset">The MapTileset containing the filename of the Surface.</param>
+	// /// <returns>The Surface object loaded from the tileset's filename.</returns>
+	// protected Surface GetTilesetSurfaceFromPack(MapTileset tileset) => Assets.GetFromPack<Surface>(tileset.Filename);
+
+	// /// <summary>
+	// /// Retrieves a Map object by name from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The name of the Map.</param>
+	// /// <returns>The Map object associated with the name.</returns>
+	// protected Map GetMap(string name) => Assets.Get<Map>(name);
+
+	// /// <summary>
+	// /// Retrieves a Map object by enum value from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The enum value representing the name of the Map.</param>
+	// /// <returns>The Map object associated with the enum value.</returns>
+	// protected Map GetMap(Enum name) => Assets.Get<Map>(name);
+
+	// /// <summary>
+	// /// Retrieves a Sound object by name from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The name of the Sound.</param>
+	// /// <returns>The Sound object associated with the name.</returns>
+	// protected Sound GetSound(string name) => Assets.Get<Sound>(name);
+
+	// /// <summary>
+	// /// Retrieves a Sound object by enum value from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The enum value representing the name of the Sound.</param>
+	// /// <returns>The Sound object associated with the enum value.</returns>
+	// protected Sound GetSound(Enum name) => Assets.Get<Sound>(name);
+
+	// /// <summary>
+	// /// Retrieves a Font object by name from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The name of the Font.</param>
+	// /// <returns>The Font object associated with the name.</returns>
+	// protected BoxFont GetFont(string name) => Assets.Get<BoxFont>(name);
+
+	// /// <summary>
+	// /// Retrieves a Font object by enum value from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The enum value representing the name of the Font.</param>
+	// /// <returns>The Font object associated with the enum value.</returns>
+	// protected BoxFont GetFont(Enum name) => Assets.Get<BoxFont>(name);
+
+	// /// <summary>
+	// /// Retrieves a Spritesheet object by name from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The name of the Spritesheet.</param>
+	// /// <returns>The Spritesheet object associated with the name.</returns>
+	// protected Spritesheet GetSheet(string name) => Assets.Get<Spritesheet>(name);
+
+	// /// <summary>
+	// /// Retrieves a Spritesheet object by enum value from the Assets manager.
+	// /// </summary>
+	// /// <param name="name">The enum value representing the name of the Spritesheet.</param>
+	// /// <returns>The Spritesheet object associated with the enum value.</returns>
+	// protected Spritesheet GetSheet(Enum name) => Assets.Get<Spritesheet>(name);
 
 	/// <summary>
 	/// Gets the global position of the specified entity.
@@ -586,77 +598,77 @@ public class Entity
 	}
 
 
-	/// <summary>
-	/// Loads a bitmap font from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the bitmap font.</param>
-	/// <param name="spacing">The spacing between characters. Default is 0.</param>
-	/// <param name="linespacing">The spacing between lines of text. Default is 0.</param>
-	/// <returns>A <see cref="BitmapFont"/> object representing the loaded font.</returns>
-	public BitmapFont LoadBitmapFont(string path, int spacing = 0, int linespacing = 0)
-		=> Assets.LoadBitmapFont(path, spacing, linespacing);
+	// /// <summary>
+	// /// Loads a bitmap font from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the bitmap font.</param>
+	// /// <param name="spacing">The spacing between characters. Default is 0.</param>
+	// /// <param name="linespacing">The spacing between lines of text. Default is 0.</param>
+	// /// <returns>A <see cref="BitmapFont"/> object representing the loaded font.</returns>
+	// public BitmapFont LoadBitmapFont(string path, int spacing = 0, int linespacing = 0)
+	// 	=> Assets.LoadBitmapFont(path, spacing, linespacing);
 
-	/// <summary>
-	/// Loads a generic font with the specified settings.
-	/// </summary>
-	/// <param name="path">The file path to the font.</param>
-	/// <param name="size">The size of the font.</param>
-	/// <param name="useSmoothing">Whether to use smoothing. Default is false.</param>
-	/// <param name="bold">Whether to render the font as bold. Default is false.</param>
-	/// <param name="thickness">The thickness of the font. Default is 0.</param>
-	/// <param name="spacing">The spacing between characters. Default is 0.</param>
-	/// <param name="lineSpacing">The spacing between lines of text. Default is 0.</param>
-	/// <returns>A <see cref="GenericFont"/> object representing the loaded font.</returns>
-	public GenericFont LoadFont(string path, int size, bool useSmoothing = false, bool bold = false, int thickness = 0, int spacing = 0, int lineSpacing = 0)
-		=> Assets.LoadFont(path, size, useSmoothing, bold, thickness, spacing, lineSpacing);
+	// /// <summary>
+	// /// Loads a generic font with the specified settings.
+	// /// </summary>
+	// /// <param name="path">The file path to the font.</param>
+	// /// <param name="size">The size of the font.</param>
+	// /// <param name="useSmoothing">Whether to use smoothing. Default is false.</param>
+	// /// <param name="bold">Whether to render the font as bold. Default is false.</param>
+	// /// <param name="thickness">The thickness of the font. Default is 0.</param>
+	// /// <param name="spacing">The spacing between characters. Default is 0.</param>
+	// /// <param name="lineSpacing">The spacing between lines of text. Default is 0.</param>
+	// /// <returns>A <see cref="GenericFont"/> object representing the loaded font.</returns>
+	// public GenericFont LoadFont(string path, int size, bool useSmoothing = false, bool bold = false, int thickness = 0, int spacing = 0, int lineSpacing = 0)
+	// 	=> Assets.LoadFont(path, size, useSmoothing, bold, thickness, spacing, lineSpacing);
 
-	/// <summary>
-	/// Loads a map from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the map.</param>
-	/// <returns>A <see cref="Map"/> object representing the loaded map.</returns>
-	public Map LoadMap(string path) => Assets.LoadMap(path);
+	// /// <summary>
+	// /// Loads a map from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the map.</param>
+	// /// <returns>A <see cref="Map"/> object representing the loaded map.</returns>
+	// public Map LoadMap(string path) => Assets.LoadMap(path);
 
-	/// <summary>
-	/// Loads a pack of assets from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the asset pack.</param>
-	public void LoadPack(string path) => Assets.LoadPack(path);
+	// /// <summary>
+	// /// Loads a pack of assets from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the asset pack.</param>
+	// public void LoadPack(string path) => Assets.LoadPack(path);
 
-	/// <summary>
-	/// Loads a sound from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the sound.</param>
-	/// <returns>A <see cref="Sound"/> object representing the loaded sound.</returns>
-	public Sound LoadSound(string path) => Assets.LoadSound(path);
+	// /// <summary>
+	// /// Loads a sound from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the sound.</param>
+	// /// <returns>A <see cref="Sound"/> object representing the loaded sound.</returns>
+	// public Sound LoadSound(string path) => Assets.LoadSound(path);
 
-	/// <summary>
-	/// Loads a sprite sheet from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the sprite sheet.</param>
-	/// <returns>A <see cref="Spritesheet"/> object representing the loaded sprite sheet.</returns>
-	public Spritesheet LoadSpriteSheet(string path) => Assets.LoadSpriteSheet(path);
+	// /// <summary>
+	// /// Loads a sprite sheet from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the sprite sheet.</param>
+	// /// <returns>A <see cref="Spritesheet"/> object representing the loaded sprite sheet.</returns>
+	// public Spritesheet LoadSpriteSheet(string path) => Assets.LoadSpriteSheet(path);
 
-	/// <summary>
-	/// Loads a subsection of a surface (texture) from the specified file path and region.
-	/// </summary>
-	/// <param name="path">The file path to the texture.</param>
-	/// <param name="region">The rectangular region of the surface to load.</param>
-	/// <param name="repeat">Whether the texture should repeat. Default is false.</param>
-	/// <param name="smooth">Whether to use smoothing on the texture. Default is false.</param>
-	/// <returns>A <see cref="Surface"/> object representing the loaded subsection.</returns>
-	public Surface LoadSubSurface(string path, Rect2 region, bool repeat = false, bool smooth = false)
-		=> Assets.LoadSubSurface(path, region, repeat, smooth);
+	// /// <summary>
+	// /// Loads a subsection of a surface (texture) from the specified file path and region.
+	// /// </summary>
+	// /// <param name="path">The file path to the texture.</param>
+	// /// <param name="region">The rectangular region of the surface to load.</param>
+	// /// <param name="repeat">Whether the texture should repeat. Default is false.</param>
+	// /// <param name="smooth">Whether to use smoothing on the texture. Default is false.</param>
+	// /// <returns>A <see cref="Surface"/> object representing the loaded subsection.</returns>
+	// public Surface LoadSubSurface(string path, Rect2 region, bool repeat = false, bool smooth = false)
+	// 	=> Assets.LoadSubSurface(path, region, repeat, smooth);
 
-	/// <summary>
-	/// Loads a surface (texture) from the specified file path.
-	/// </summary>
-	/// <param name="path">The file path to the texture.</param>
-	/// <param name="repeat">Whether the texture should repeat. Default is false.</param>
-	/// <param name="smooth">Whether to use smoothing on the texture. Default is false.</param>
-	/// <returns>A <see cref="Surface"/> object representing the loaded texture.</returns>
-	public Surface LoadSurface(string path, bool repeat = false, bool smooth = false)
-		=> Assets.LoadSurface(path, repeat, smooth);
+	// /// <summary>
+	// /// Loads a surface (texture) from the specified file path.
+	// /// </summary>
+	// /// <param name="path">The file path to the texture.</param>
+	// /// <param name="repeat">Whether the texture should repeat. Default is false.</param>
+	// /// <param name="smooth">Whether to use smoothing on the texture. Default is false.</param>
+	// /// <returns>A <see cref="Surface"/> object representing the loaded texture.</returns>
+	// public Surface LoadSurface(string path, bool repeat = false, bool smooth = false)
+	// 	=> Assets.LoadSurface(path, repeat, smooth);
 
 	/// <summary>
 	/// Casts the child entities to the specified type.
@@ -676,12 +688,12 @@ public class Entity
 		if (IsExiting)
 			return;
 
-		IsExiting = true;
-
-		ClearChildren();
 		ClearSignals();
+		ClearChildren();
 		ClearRoutines();
 		ClearTimers();
+
+		IsExiting = true;
 
 		OnExit();
 	}
@@ -693,9 +705,9 @@ public class Entity
 
 	internal void EngineUpdate()
 	{
-		if (Engine.GetService<EngineSettings>().DebugDraw)
+		if (EngineSettings.Instance.DebugDraw)
 			// Renderer.Instance.DrawRectangleOutline(GlobalBounds, BoxColor.AllShades.Red);
-			Renderer.DrawRectangleOutline(GlobalBounds.X, GlobalBounds.Y, GlobalBounds.Width,
+			BE.Renderer.DrawRectangleOutline(GlobalBounds.X, GlobalBounds.Y, GlobalBounds.Width,
 				GlobalBounds.Height, 1f, Color.AllShades.Red);
 
 		Update();
@@ -953,7 +965,7 @@ public class Entity
 		if (IsExiting)
 			return default;
 
-		var handle = Coroutine.RunDelayed(delay, routine);
+		var handle = BE.Coroutine.RunDelayed(delay, routine);
 
 		_coroutines.Add(handle);
 
@@ -972,7 +984,7 @@ public class Entity
 	/// </summary>
 	/// <param name="handle">The handle of the coroutine to check.</param>
 	/// <returns>True if the coroutine with the specified handle is running; otherwise, false.</returns>
-	public bool HasRoutine(CoroutineHandle handle) => _coroutines.Any(x => x == handle);
+	public bool HasRoutine(CoroutineHandle handle) => _coroutines.Any(x => x.Enumerator == handle.Enumerator);
 
 	/// <summary>
 	/// Checks if a coroutine with the specified IEnumerator is currently running.
@@ -995,14 +1007,14 @@ public class Entity
 	/// <returns>True if the coroutine was successfully stopped; otherwise, false.</returns>
 	public bool StopRoutine(IEnumerator handle)
 	{
-		Coroutine.Stop(handle);
+		BE.Coroutine.Stop(handle);
 
 		if (!HasRoutine(handle))
 			return false;
 
 		var routine = _coroutines.FirstOrDefault(x => x.Enumerator == handle);
 
-		return Coroutine.Stop(routine);
+		return BE.Coroutine.Stop(routine);
 	}
 
 	/// <summary>
@@ -1036,7 +1048,7 @@ public class Entity
 		else
 			value.Add(handle);
 
-		Signal.Connect(name, handle);
+		BE.Signal.Connect(name, handle);
 	}
 
 	/// <summary>
@@ -1051,14 +1063,14 @@ public class Entity
 	/// </summary>
 	/// <param name="name">The name of the signal to emit.</param>
 	/// <param name="data">Optional data to pass to the signal handlers.</param>
-	public void Emit(string name, params object[] data) => Signal.Emit(name, data);
+	public void Emit(string name, params object[] data) => BE.Signal.Emit(name, data);
 
 	/// <summary>
 	/// Emits (triggers) a signal identified by an enum value, passing optional data to its handlers.
 	/// </summary>
 	/// <param name="name">The enum value representing the signal to emit.</param>
 	/// <param name="data">Optional data to pass to the signal handlers.</param>
-	public void Emit(Enum name, params object[] data) => Signal.Emit(name, data);
+	public void Emit(Enum name, params object[] data) => BE.Signal.Emit(name, data);
 
 	/// <summary>
 	/// Emits (triggers) a signal with a delay, identified by its name, passing optional data to its handlers.
@@ -1067,7 +1079,7 @@ public class Entity
 	/// <param name="name">The name of the signal to emit.</param>
 	/// <param name="data">Optional data to pass to the signal handlers.</param>
 	public void EmitDelayed(float delay, string name, params object[] data)
-		=> Signal.EmitDelayed(delay, name, data);
+		=> BE.Signal.EmitDelayed(delay, name, data);
 
 	/// <summary>
 	/// Emits (triggers) a signal with a delay, identified by an enum value, passing optional data to its handlers.
@@ -1076,7 +1088,7 @@ public class Entity
 	/// <param name="name">The enum value representing the signal to emit.</param>
 	/// <param name="data">Optional data to pass to the signal handlers.</param>
 	public void EmitDelayed(float delay, Enum name, params object[] data)
-		=> Signal.EmitDelayed(delay, name, data);
+		=> BE.Signal.EmitDelayed(delay, name, data);
 
 	/// <summary>
 	/// Checks if a signal with the specified name has any connected handlers.
@@ -1102,7 +1114,7 @@ public class Entity
 		if (_signals.TryGetValue(name, out var signals))
 		{
 			foreach (Action<SignalHandle> signal in signals)
-				Signal.Disconnect(name, signal);
+				BE.Signal.Disconnect(name, signal);
 
 			_signals.Remove(name);
 
@@ -1130,7 +1142,7 @@ public class Entity
 		foreach (var signal in new Dictionary<string, List<Action<SignalHandle>>>(_signals))
 		{
 			foreach (Action<SignalHandle> action in signal.Value)
-				Signal.Disconnect(signal.Key, action);
+				BE.Signal.Disconnect(signal.Key, action);
 
 			_signals.Remove(signal.Key);
 		}
@@ -1201,28 +1213,4 @@ public class Entity
 	/// </summary>
 	public void ClearTimers() => _timers.Clear();
 	#endregion
-
-
-
-
-
-
-	public T SetPosition<T>(Vect2 position) where T : Entity
-	{
-		Position = position;
-
-		return (T)this;
-	}
-	public T SetPosition<T>(float x, float y) where T : Entity
-	{
-		Position = new Vect2(x, y); ;
-
-		return (T)this;
-	}
-	public T SetSize<T>(Vect2 size) where T : Entity
-	{
-		Size = size;
-
-		return (T)this;
-	}
 }

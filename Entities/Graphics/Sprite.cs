@@ -104,9 +104,9 @@ public class Sprite : Entity
 		if (!AnyParentOfType<BoxRenderTarget>(out var target))
 		{
 			if (!_source.IsEmpty)
-				Renderer.Draw(_surface, Position + Alignment(), _source, Effects, Color, Layer);
+				BE.Renderer.Draw(_surface, Position + Alignment(), _source, Effects, Color, Layer);
 			else
-				Renderer.Draw(_surface, Position + Alignment(), Bounds > _surface.Bounds ? Bounds : _surface.Bounds, Effects, Color, Layer);
+				BE.Renderer.Draw(_surface, Position + Alignment(), Bounds > _surface.Bounds ? Bounds : _surface.Bounds, Effects, Color, Layer);
 		}
 		else
 		{
@@ -116,11 +116,9 @@ public class Sprite : Entity
 				target.Draw(_surface, Position - target.Position + Alignment(), Bounds > _surface.Bounds ? Bounds : _surface.Bounds, Effects, Color, Layer);
 		}
 
-		if (GetService<EngineSettings>().DebugDraw)
+		if (EngineSettings.Instance.DebugDraw)
 			Renderer.Instance.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Purple);
 	}
-
-	private object _target = null;
 
 	private Vect2 Alignment()
 	{

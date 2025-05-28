@@ -19,8 +19,7 @@ public sealed class WaitForSecondsRealtime : IEnumerator
 	/// <param name="seconds">Number of real-time seconds to wait before resuming the coroutine.</param>
 	public WaitForSecondsRealtime(float seconds)
 	{
-		_svc = Engine.GetService<Clock>();
-		_targetTime = _svc.RealTime + (double)seconds;
+		_targetTime = Clock.Instance.RealTime + (double)seconds;
 	}
 
 	/// <summary>

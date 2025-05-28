@@ -173,12 +173,12 @@ public class RenderTarget : Entity
 
 		_target.Display();
 
-		Renderer.Draw(_surface, Position, Color);
+		BE.Renderer.Draw(_surface, Position, Color);
 
 		IsRendering = false;
 
-		if (GetService<EngineSettings>().DebugDraw)
-			Renderer.DrawRectangleOutline(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height, 1f, BoxColor.AllShades.Teal);
+		if (EngineSettings.Instance.DebugDraw)
+			BE.Renderer.DrawRectangleOutline(Bounds.X, Bounds.Y, Bounds.Width, Bounds.Height, 1f, BoxColor.AllShades.Teal);
 	}
 
 
@@ -626,7 +626,7 @@ public class RenderTarget : Entity
 	{
 		if (!DrawUtils.IsVisible(Screen.Camera, dstRect))
 			return;
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		// Group key
@@ -655,7 +655,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawLine(Vect2 start, Vect2 end, float thickness, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha; // Can be extended
@@ -674,7 +674,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawPoint(Vect2 position, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -692,7 +692,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawRectangleOutline(Rect2 rectangle, float thickness, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -713,7 +713,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawRectangleFill(Rect2 rectangle, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -733,7 +733,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawCircleOutline(Vect2 center, float radius, int segments, float thickness, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -754,7 +754,7 @@ public class RenderTarget : Entity
 
 	private void EngineBatchDrawCircleFill(Vect2 position, float radius, int segments, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -774,7 +774,7 @@ public class RenderTarget : Entity
 
 	private void EngineDrawRoundedRectangleFill(Rect2 value, float radius, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -794,7 +794,7 @@ public class RenderTarget : Entity
 	}
 	private void EngineDrawRoundedRectangleOutline(Rect2 value, float radius, float thickness, int segments, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -816,7 +816,7 @@ public class RenderTarget : Entity
 	private void EngineBuildEllipseOutline(Vect2 center, Vect2 radius, int segments, BoxColor color, Vect2? origin = null,
 	float rotation = 0f, Vect2? scale = null, float thickness = 1f)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -838,7 +838,7 @@ public class RenderTarget : Entity
 	private void EngineBuildEllipseFill(Vect2 center, Vect2 radius, int segments, BoxColor color, Vect2? origin = null,
 	float rotation = 0f, Vect2? scale = null)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -859,7 +859,7 @@ public class RenderTarget : Entity
 
 	private void EngineBuildPolyline(List<Vect2> points, BoxColor color, float thickness = 1f)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -880,7 +880,7 @@ public class RenderTarget : Entity
 
 	private void EngineBuildPolygonFill(List<Vect2> points, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;
@@ -901,7 +901,7 @@ public class RenderTarget : Entity
 
 	private void EngineBuildTriangle(Vect2 p0, Vect2 p1, Vect2 p2, BoxColor color)
 	{
-		if (_batchIndex > GetService<EngineSettings>().MaxDrawCalls - 1)
+		if (_batchIndex > EngineSettings.Instance.MaxDrawCalls - 1)
 			Flush();
 
 		var blend = SFMLBlendMode.Alpha;

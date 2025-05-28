@@ -94,7 +94,7 @@ public class BaseButton : Entity
         if (!_enabled)
             return;
 
-        var position = Vect2.Transform(Input.MousePosition, Camera);
+        var position = Vect2.Transform(BE.Input.MousePosition, Camera);
 
         if (Bounds.Contains(position))
         {
@@ -104,7 +104,7 @@ public class BaseButton : Entity
                 _hover = true;
             }
 
-            if (Input.IsMousePressed(MouseButton.Left))
+            if (BE.Input.IsMousePressed(MouseButton.Left))
             {
                 if (!_pressed)
                 {
@@ -119,7 +119,7 @@ public class BaseButton : Entity
                     _click = true;
                 }
             }
-            else if (Input.IsMouseReleased(MouseButton.Left))
+            else if (BE.Input.IsMouseReleased(MouseButton.Left))
             {
                 if (_pressed)
                 {
@@ -145,7 +145,7 @@ public class BaseButton : Entity
                 _hover = false;
             }
 
-            if (Input.IsMouseReleased(MouseButton.Left))
+            if (BE.Input.IsMouseReleased(MouseButton.Left))
             {
                 if (_pressed)
                 {

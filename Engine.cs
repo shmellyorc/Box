@@ -1,59 +1,43 @@
-﻿using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-
-using Box.Graphics.Batch;
+﻿using Box.Graphics.Batch;
 using Box.Resources;
 using Box.Services;
-using Box.Services.Types;
 
 namespace Box;
 
 /// <summary>
 /// The game engine responsible for managing all systems and subsystems to facilitate game development.
 /// </summary>
-public class Engine : GameService, IDisposable
+public class Engine : IDisposable
 {
 	private const float FrameDelay = 1.0f;
 	private const int MaxFrameSamples = 100;
-	private const float SMoothingFpsFactor = 0.98f;
 
-	internal SFMLRenderWindow _window;
-	internal SFMLRenderTexture _renderTexture;
+	internal SFMLRenderWindow Window;
+	internal SFMLRenderTexture RenderTexture;
 
-	// private static Engine _instance;
-
-	// private readonly StringBuilder sbTitle = new();
 	private readonly Queue<float> _frameSamples = new();
 	private readonly EngineSettings _settings;
+	private readonly bool _initialized;
 	private SFMLStyles _styles;
 	private SFMLVideoMode _video;
 	private readonly SFMLContextSettings _contextSettings;
-	private bool _isClosing;
-	private bool _initialized;
-	private bool _oldFullscreen, _fullscreen;
-	private Vect2 _oldWindowSize, _windowSize;
-	private bool _isDisposed;
+	private bool _isClosing, _isDisposed, _oldFullscreen, _fullscreen;
 	private float _timeout;
-	// private int _frameCount;
-	private long _totalFrames;
+	private Vect2 _oldWindowSize, _windowSize;
+	private ulong _totalFrames;
 	private SFMLSprite _renderTextureSprite;
-
-	internal SFMLRenderTexture GetRenderTarget() => _renderTexture;
-
-	// private readonly Clock _clock;
-	// private readonly Assets _assets;
-	// private readonly Renderer _renderer;
-	// private readonly Rand _rand;
-	// private readonly ScreenManager _screenManager;
-	// private readonly InputMap _input;
-	// private readonly Signal _signal;
-	// private readonly SoundManager _soundManager;
-	// private readonly Log _log;
-	// private readonly Coroutine _coroutine;
-
+	private readonly Clock _clock;
+	private readonly Assets _assets;
+	private readonly Renderer _renderer;
+	private readonly FastRandom _rand;
+	private readonly ScreenManager _screenManager;
+	private readonly InputMap _input;
+	private readonly Signal _signal;
+	private readonly SoundManager _soundManager;
+	private readonly Log _log;
+	private readonly Coroutine _coroutine;
 	private readonly SFMLImage _icon;
-	private readonly BoxFont _font;
+	private readonly ServiceManager _service;
 
 
 	/// <summary>
@@ -62,24 +46,14 @@ public class Engine : GameService, IDisposable
 	public InputMap Input { get; private set; }
 
 	/// <summary>
-	/// Gets or sets the <see cref="ServiceManager"/> instance used by the engine.
-	/// </summary>
-	/// <remarks>
-	/// This property provides access to the <see cref="ServiceManager"/> which is responsible for managing the
-	/// services, including registration and resolution, within the engine. The property is set internally, but it can
-	/// be accessed externally for interacting with the engine's services.
-	/// </remarks>
-	public static ServiceCollection Services { get; internal set; }
-
-	/// <summary>
 	/// Delegate used to detect when the application is exiting.
 	/// </summary>
 	public Action<Engine> OnExiting;
 
-	// /// <summary>
-	// /// Gets the current instance of the engine.
-	// /// </summary>
-	// public static Engine Instance => _instance;
+	/// <summary>
+	/// Gets the current instance of the engine.
+	/// </summary>
+	public static Engine Instance { get; private set; }
 
 	/// <summary>
 	/// Determines whether the game window has focus.
@@ -89,44 +63,7 @@ public class Engine : GameService, IDisposable
 	/// <summary>
 	/// The embedded engine font.
 	/// </summary>
-	public BoxFont EngineFont => _font;
-
-	/// <summary>
-	/// Retrieves a singleton game data object of the specified type.
-	/// </summary>
-	/// <remarks>
-	/// Singletons can be used within entities and screens without needing to wrap data around the engine.
-	/// For other types, use Engine.GetSingleton to access data or important methods.
-	/// </remarks>
-	/// <typeparam name="T">The type of the singleton to retrieve.</typeparam>
-	/// <returns>The singleton object if it exists; otherwise, null.</returns>
-	[MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static T GetService<T>() where T : GameService
-	{
-		if (!Services.TryGetService<T>(out var service))
-			return default;
-
-		return service;
-	}
-
-	/// <summary>
-	/// Retrieves a singleton service as an object based on the specified type.
-	/// </summary>
-	/// <param name="singleton">The type of the singleton service to retrieve.</param>
-	/// <returns>
-	/// An instance of the singleton service, or <c>null</c> if no matching service is found.
-	/// </returns>
-	/// <remarks>
-	/// This method searches through the registered services and returns the first instance that matches the specified type.
-	/// If no matching service is found, it returns <c>null</c>.
-	/// </remarks>
-	public static object GetServiceAsObject(Type singleton)
-	{
-		if (singleton == null)
-			return null;
-
-		return Services.Services.FirstOrDefault(x => x.GetType() == singleton);
-	}
+	public BoxFont EngineFont { get; private set; }
 
 	/// <summary>
 	/// Retrieves the application data folder path based on the current operating system.
@@ -210,16 +147,20 @@ public class Engine : GameService, IDisposable
 		if (_oldWindowSize == _windowSize && _oldFullscreen == _fullscreen)
 			return;
 
-		if (_window.IsOpen)
+		if (Window != null && Window.IsOpen)
 		{
-			_window.Closed -= (_, _) => Quit();
-			_window.GainedFocus -= (_, _) => IsActive = true;
-			_window.LostFocus -= (_, _) => IsActive = false;
+			Window.Closed -= (_, _) => Quit();
+			Window.GainedFocus -= (_, _) => IsActive = true;
+			Window.LostFocus -= (_, _) => IsActive = false;
 
 			_renderTextureSprite?.Dispose();
 
-			_window.Close();
+			Window.Close();
+
 		}
+
+		Window?.Dispose();
+		Window = null;
 
 		if (Fullscreen)
 		{
@@ -227,29 +168,28 @@ public class Engine : GameService, IDisposable
 
 			_styles = SFMLStyles.Fullscreen;
 			_video = new SFMLVideoMode(desktop.Width, desktop.Height);
-			_window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
-			_renderTexture = new SFMLRenderTexture(desktop.Width, desktop.Height, _contextSettings);
+			Window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
+			RenderTexture = new SFMLRenderTexture(desktop.Width, desktop.Height, _contextSettings);
 		}
 		else
 		{
 			_styles = SFMLStyles.Titlebar | SFMLStyles.Close;
 			_video = new SFMLVideoMode((uint)_windowSize.X, (uint)_windowSize.Y);
-			_window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
-			_renderTexture = new SFMLRenderTexture((uint)_windowSize.X, (uint)_windowSize.Y, _contextSettings);
+			Window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
+			RenderTexture = new SFMLRenderTexture((uint)_windowSize.X, (uint)_windowSize.Y, _contextSettings);
 		}
 
-		_window.Closed += (_, _) => Quit();
-		_window.GainedFocus += (_, _) => IsActive = true;
-		_window.LostFocus += (_, _) => IsActive = false;
+		Window.Closed += (_, _) => Quit();
+		Window.GainedFocus += (_, _) => IsActive = true;
+		Window.LostFocus += (_, _) => IsActive = false;
 
-		_window.SetVerticalSyncEnabled(_settings.VSync);
-		_window.SetMouseCursorVisible(_settings.Mouse);
-		// _window.SetFramerateLimit(_settings.VSync ? 60u : 0u);
-		_window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+		Window.SetVerticalSyncEnabled(_settings.VSync);
+		Window.SetMouseCursorVisible(_settings.Mouse);
+		Window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
 
 		if (_windowSize != _oldWindowSize)
 		{
-			GetService<Signal>().Emit(EngineSignals.WindowSizeChanged, _windowSize);
+			Signal.Instance.Emit(EngineSignals.WindowSizeChanged, _windowSize);
 			_settings.Window = _windowSize;
 
 			_oldWindowSize = _windowSize;
@@ -257,30 +197,20 @@ public class Engine : GameService, IDisposable
 
 		if (_fullscreen != _oldFullscreen)
 		{
-			GetService<Signal>().Emit(EngineSignals.WindowFullscreenChanged, _fullscreen);
+			Signal.Instance.Emit(EngineSignals.WindowFullscreenChanged, _fullscreen);
 			_settings.Fullscreen = _fullscreen;
 
 			_oldFullscreen = _fullscreen;
 		}
-
-		Start();
 	}
 
 	/// <summary>
 	/// Initializes the game engine with the specified settings.
 	/// </summary>
-	/// <param name="serviceManager">
-	/// A <see cref="ServiceManager"/> containing various engine configurations such as window size, viewport size, 
-	/// culling settings, and other services needed for the engine to operate. The <see cref="ServiceManager"/> manages 
-	/// the lifecycle and resolution of services used throughout the engine.
-	/// </param>
 	public Engine(EngineSettings settings)
 	{
+		Instance ??= this;
 		_settings = settings;
-		Services = new ServiceCollection();
-
-		// Required to start here or it will crash if moved. Dont move.
-		Services.RegisterManyServices(this, _settings);
 
 		_styles = _settings.Fullscreen ? SFMLStyles.Fullscreen : SFMLStyles.Titlebar | SFMLStyles.Close;
 		_video = new SFMLVideoMode((uint)_settings.Window.X, (uint)_settings.Window.Y);
@@ -294,21 +224,21 @@ public class Engine : GameService, IDisposable
 		};
 
 		_icon = new SFMLImage(ResourceLoader.GetResourceBytes("box-32.png"));
-		_font = new GenericFont("font.ttf", ResourceLoader.GetResourceBytes("font.ttf"), 8, false, false, 0, 0, 3);
-		_window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
+		EngineFont = new GenericFont("font.ttf", ResourceLoader.GetResourceBytes("font.ttf"), 8, false, false, 0, 0, 3);
+		Window = new SFMLRenderWindow(_video, _settings.AppTitle, _styles, _contextSettings);
 
-		_window.Closed += (_, _) => Quit();
-		_window.GainedFocus += (_, _) => IsActive = true;
-		_window.LostFocus += (_, _) => IsActive = false;
+		Window.Closed += (_, _) => Quit();
+		Window.GainedFocus += (_, _) => IsActive = true;
+		Window.LostFocus += (_, _) => IsActive = false;
 
-		_window.SetVerticalSyncEnabled(_settings.VSync);
-		_window.SetMouseCursorVisible(_settings.Mouse);
-		_window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
+		Window.SetVerticalSyncEnabled(_settings.VSync);
+		Window.SetMouseCursorVisible(_settings.Mouse);
+		Window.SetIcon(_icon.Size.X, _icon.Size.Y, _icon.Pixels);
 
 		WindowSize = new Vect2(_settings.Window);
 		Fullscreen = _settings.Fullscreen;
 
-		_renderTexture = new SFMLRenderTexture((uint)_settings.Window.X, (uint)_settings.Window.Y, _contextSettings);
+		RenderTexture = new SFMLRenderTexture((uint)_settings.Window.X, (uint)_settings.Window.Y, _contextSettings);
 
 		if (!_initialized)
 		{
@@ -323,27 +253,21 @@ public class Engine : GameService, IDisposable
 			else
 				Input = _settings.InputMap;
 
-			Services.RegisterManyServices(
+			_log = new();
+			_rand = new();
+			_clock = new();
+			_assets = new();
+			_signal = new();
+			_service = new();
+			_renderer = new();
+			_coroutine = new();
+			_soundManager = new();
+			_screenManager = new();
 
-				Input
-			);
-
-			Services.RegisterManyServices(
-				new Log(),
-				new FastRandom(),
-				new Clock(),
-				new Assets(),
-				new Signal(),
-				new Renderer(),
-				new Coroutine(),
-				new SoundManager(),
-				new ScreenManager()
-			);
-
-			Services.RegisterManyServices(settings.Services);
+			_service.RegisterManyServices(settings.Services);
 
 			if (_settings.Screens is not null && _settings.Screens.Length > 0)
-				GetService<ScreenManager>().Add(_settings.Screens);
+				ScreenManager.Instance.Add(_settings.Screens);
 
 			_initialized = true;
 		}
@@ -364,36 +288,38 @@ public class Engine : GameService, IDisposable
 	/// </summary>
 	public void Start()
 	{
-		IsActive = _window.HasFocus();
+		IsActive = Window.HasFocus();
 
 		Input.LoadInputs();
-		_font.Initialize();
+		EngineFont.Initialize();
 
 		if (_initialized)
 			_renderTextureSprite?.Dispose();
 
-		_renderTextureSprite = new SFMLSprite(_renderTexture.Texture);
+		_renderTextureSprite = new SFMLSprite(RenderTexture.Texture);
 
 		do
 		{
-			if (!_window.IsOpen)
+			if (!Window.IsOpen)
 				break;
 
-			_window.DispatchEvents();
+			Window.DispatchEvents();
+			_clock.Update();
+			_coroutine.Update();
 
 			UpdateTitle();
 
-			_renderTexture.Clear(SFMLColor.Transparent);
-			Services.Update();
-			_renderTexture.Display();
+			RenderTexture.Clear(SFMLColor.Transparent);
+			_screenManager.Update();
+			RenderTexture.Display();
 
-			_window.Clear(_settings.ClearColor.ToSFML());
-			_window.Draw(_renderTextureSprite);
-			_window.Display();
+			Window.Clear(_settings.ClearColor.ToSFML());
+			Window.Draw(_renderTextureSprite);
+			Window.Display();
 
 			// _frameCount++;
 			_totalFrames++;
-		} while (_window.IsOpen);
+		} while (Window.IsOpen);
 	}
 
 	/// <summary>
@@ -401,14 +327,14 @@ public class Engine : GameService, IDisposable
 	/// </summary>
 	public void Quit()
 	{
-		if (_window == null)
+		if (Window == null)
 			return;
-		if (!_window.IsOpen)
+		if (!Window.IsOpen)
 			return;
 
 		OnExiting?.Invoke(this);
 
-		_window.Close();
+		Window.Close();
 
 		_isClosing = true;
 	}
@@ -488,20 +414,20 @@ public class Engine : GameService, IDisposable
 
 	private void UpdateTitle()
 	{
-		if (_frameSamples.Count > MaxFrameSamples - 1)
+		if (_frameSamples.Count >= MaxFrameSamples)
 			_frameSamples.Dequeue();
 
-		_frameSamples.Enqueue(1f / GetService<Clock>().DeltaTime);
+		_frameSamples.Enqueue(1f / _clock.DeltaTime);
 
 		if (_timeout < 0f)
 		{
-			StringBuilder sb = new StringBuilder();
-			ScreenManager sm = GetService<ScreenManager>();
-			Renderer re = GetService<Renderer>();
-			Assets @as = GetService<Assets>();
-			Coroutine co = GetService<Coroutine>();
-			Signal sl = GetService<Signal>();
-			SoundManager sd = GetService<SoundManager>();
+			var sb = new StringBuilder();
+			var sm = _screenManager;
+			var re = _renderer;
+			var @as = _assets;
+			var co = _coroutine;
+			var sl = _signal;
+			var sd = _soundManager;
 
 			string activeScreen = sm.ActiveScreen == null
 				? "None" : sm.ActiveScreen.GetType().Name;
@@ -516,12 +442,12 @@ public class Engine : GameService, IDisposable
 			sb.Append($"Timers: {sm.TotalTimers} | ");
 			sb.Append($"Sounds: {sd.PlayCount}");
 
-			_window.SetTitle(sb.ToString());
+			Window.SetTitle(sb.ToString());
 
 			_timeout += FrameDelay;
 		}
 		else
-			_timeout -= GetService<Clock>().DeltaTime;
+			_timeout -= _clock.DeltaTime;
 	}
 
 
@@ -563,14 +489,14 @@ public class Engine : GameService, IDisposable
 
 		// Always clear singals first so it doesnt emit entities 
 		// removed when it clears screens or entities.
-		GetService<Signal>().Clear();
+		_signal.Clear();
 
-		GetService<Coroutine>().StopAll();
-		GetService<ScreenManager>().Clear();
-		GetService<SoundManager>().EngineClear();
-		GetService<Assets>().Clear();
+		_coroutine.StopAll();
+		_screenManager.Clear();
+		_soundManager.EngineClear();
+		_assets.Clear();
 
-		_window?.Dispose();
+		Window?.Dispose();
 		_icon.Dispose();
 
 		_isDisposed = true;

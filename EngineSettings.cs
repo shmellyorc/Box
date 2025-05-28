@@ -5,8 +5,10 @@ namespace Box;
 /// <summary>
 /// Engine settings used to configure window size, viewport size, vsync, culling, and other options.
 /// </summary>
-public class EngineSettings : GameService
+public class EngineSettings
 {
+	public static EngineSettings Instance { get; private set; }
+
 	/// <summary>
 	/// Title of the application to be displayed on the game window.
 	/// <para>Default value: Game</para>
@@ -756,5 +758,5 @@ public class EngineSettings : GameService
 	/// <summary>
 	/// Engine settings used to configure window size, viewport size, vsync, culling, and other options.
 	/// </summary>
-	public EngineSettings() { } /*=> Instance ??= this;*/
+	public EngineSettings()  => Instance ??= this;
 }

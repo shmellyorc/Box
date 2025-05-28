@@ -11,9 +11,11 @@ namespace Box.Signals;
 /// <para>Class 1: Connect("Push", OnPush);</para>
 /// <para>Class 2: Emit("Push", box);</para>
 /// </remarks>
-public sealed class Signal : GameService
+public sealed class Signal
 {
 	private readonly Dictionary<string, Dictionary<string, Action<SignalHandle>>> _items = new();
+
+	public static Signal Instance { get; private set; }
 
 	/// <summary>
 	/// Gets the total number of connected signals in the entire project.
@@ -26,6 +28,11 @@ public sealed class Signal : GameService
 			return;
 
 		_items.Clear();
+	}
+
+	internal Signal()
+	{
+		Instance ??= this;
 	}
 
 	#region Connect
@@ -112,7 +119,7 @@ public sealed class Signal : GameService
 			Emit(name, data);
 		}
 
-		GetService<Coroutine>().Run(routine(delay, name, data));
+		Coroutine.Instance.Run(routine(delay, name, data));
 	}
 
 	/// <summary>
@@ -126,7 +133,7 @@ public sealed class Signal : GameService
 
 	private void Emit(string id, string name, params object[] data)
 	{
-		if (GetService<EngineSettings>().LogSignalEvents)
+		if (EngineSettings.Instance.LogSignalEvents)
 			Console.WriteLine($"Event Published: '{name}' and {data.Length} parameters");
 
 		ProcessEvent(id, name, data);

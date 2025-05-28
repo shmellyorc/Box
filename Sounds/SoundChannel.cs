@@ -58,7 +58,7 @@ public sealed class SoundChannel
 					item.Pitch = _pitch;
 				}
 
-				Engine.GetService<Signal>().Emit(EngineSignals.SoundChannelPitchChanged, this);
+				Signal.Instance.Emit(EngineSignals.SoundChannelPitchChanged, this);
 			}
 		}
 	}
@@ -93,7 +93,7 @@ public sealed class SoundChannel
 					item.Pan = _pan;
 				}
 
-				Engine.GetService<Signal>().Emit(EngineSignals.SoundChannelPanChanged, this);
+				Signal.Instance.Emit(EngineSignals.SoundChannelPanChanged, this);
 			}
 		}
 	}
@@ -176,7 +176,7 @@ public sealed class SoundChannel
 
 		_sounds.Add(instance);
 
-		Engine.GetService<Signal>().Emit(EngineSignals.SoundStarted, this, sound);
+		Signal.Instance.Emit(EngineSignals.SoundStarted, this, sound);
 
 		return instance;
 	}

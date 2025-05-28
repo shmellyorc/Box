@@ -15,7 +15,7 @@ public sealed class Camera
 	private Entity _entity;
 	private bool _shaking;
 	private float _shakeMagnitude, _shakeDuration, _shakeTimer;
-	private float NextFloat => Engine.GetService<FastRandom>().NextFloat() * 2f - 1f;
+	private float NextFloat => FastRandom.Instance.NextFloat() * 2f - 1f;
 	private Rect2 _edgeRegion;
 
 	/// <summary>
@@ -59,8 +59,7 @@ public sealed class Camera
 	/// <value>
 	/// A <c>Vect2</c> containing the horizontal and vertical scale factors.
 	/// </value>
-	public Vect2 DefaultScale => Engine.GetService<EngineSettings>().Window /
-		Engine.GetService<EngineSettings>().Viewport;
+	public Vect2 DefaultScale => EngineSettings.Instance.Window / EngineSettings.Instance.Viewport;
 
 	/// <summary>
 	/// Represents the current scale factor of the camera, relative to the window size.
@@ -71,7 +70,7 @@ public sealed class Camera
 		set
 		{
 			var oldScale = _scale;
-			_scale = Engine.GetService<EngineSettings>().Window / value;
+			_scale = EngineSettings.Instance.Window / value;
 
 			if (_scale != oldScale)
 				_view = new SFMLView(new SFMLFloatRect(_position.X, _position.Y, _scale.X, _scale.Y));
@@ -103,15 +102,15 @@ public sealed class Camera
 		_screen = screen;
 
 		_view = new SFMLView(new SFMLFloatRect(0, 0,
-			Engine.GetService<EngineSettings>().Viewport.X, Engine.GetService<EngineSettings>().Viewport.Y));
+			EngineSettings.Instance.Viewport.X, EngineSettings.Instance.Viewport.Y));
 
 		_scale = DefaultScale;
 
-		_bounds = new Rect2(Vect2.Zero, Engine.GetService<EngineSettings>().Viewport + Engine.GetService<EngineSettings>().CullSize * 2);
+		_bounds = new Rect2(Vect2.Zero, EngineSettings.Instance.Viewport + EngineSettings.Instance.CullSize * 2);
 
-		_area = new Rect2(Vect2.Zero, Engine.GetService<EngineSettings>().Viewport);
+		_area = new Rect2(Vect2.Zero, EngineSettings.Instance.Viewport);
 
-		_edgeRegion = new Rect2(Vect2.Zero, Engine.GetService<EngineSettings>().Viewport).Expand(-1, -1);
+		_edgeRegion = new Rect2(Vect2.Zero, EngineSettings.Instance.Viewport).Expand(-1, -1);
 
 		_position = Renderer.Instance.Center;
 	}
@@ -129,7 +128,7 @@ public sealed class Camera
 			return;
 
 		_view.Reset(new SFMLFloatRect(_position.X, _position.Y,
-			Engine.GetService<EngineSettings>().Viewport.X, Engine.GetService<EngineSettings>().Viewport.Y));
+			EngineSettings.Instance.Viewport.X, EngineSettings.Instance.Viewport.Y));
 
 		_scale = DefaultScale;
 	}
@@ -212,7 +211,7 @@ public sealed class Camera
 		if (!_shaking)
 			return;
 
-		_shakeTimer += Engine.GetService<Clock>().DeltaTime;
+		_shakeTimer += Clock.Instance.DeltaTime;
 
 		if (_shakeTimer >= _shakeDuration)
 		{
@@ -231,7 +230,8 @@ public sealed class Camera
 		if (_entity is null)
 			return;
 
-		_position = EasingHelpers.Ease(CameraEaseType, _position, _entity.Position + Offset, Speed * Engine.GetService<Clock>().DeltaTime);
+		_position = EasingHelpers.Ease(CameraEaseType, _position, _entity.Position + Offset, Speed 
+			* Clock.Instance.DeltaTime);
 
 		if (!ViewOnEdge() && _position.Round() != _entity.Position + Offset)
 			_screen.IsDirty = true;
@@ -239,7 +239,7 @@ public sealed class Camera
 
 	private bool ViewOnEdge()
 	{
-		var center = Engine.GetService<Renderer>().Center;
+		var center = Renderer.Instance.Center;
 		var left = _position.X - center.X;
 		var right = _position.X + center.X;
 		var top = _position.Y - center.Y;

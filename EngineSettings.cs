@@ -7,6 +7,13 @@ namespace Box;
 /// </summary>
 public class EngineSettings
 {
+	/// <summary>
+	/// Gets the global <see cref="EngineSettings"/> instance used by the engine.
+	/// </summary>
+	/// <value>
+	/// The current <see cref="EngineSettings"/> object. This is set once when the settings
+	/// are built via the fluent API and remains read-only thereafter.
+	/// </value>
 	public static EngineSettings Instance { get; private set; }
 
 	/// <summary>
@@ -36,7 +43,6 @@ public class EngineSettings
 
 		return this;
 	}
-
 
 	/// <summary>
 	/// Folder or name used for ApplicationData.
@@ -402,6 +408,17 @@ public class EngineSettings
 	/// <para>Default value: null</para>
 	/// </summary>
 	public Screen[] Screens { get; internal set; }
+
+	/// <summary>
+	/// Returns a copy of these engine settings with the specified screens registered.
+	/// </summary>
+	/// <param name="values">
+	/// An array of <see cref="Screen"/> instances to include in the engine’s screen collection.
+	/// </param>
+	/// <returns>
+	/// A new <see cref="EngineSettings"/> instance identical to the current one,
+	/// but configured to include the provided <paramref name="values"/> screens.
+	/// </returns>
 	public EngineSettings WithScreens(params Screen[] values)
 	{
 		if (values.Length == 0)
@@ -635,6 +652,15 @@ public class EngineSettings
 	/// <para>Default value: DefaultInputMap</para>
 	/// </summary>
 	public InputMap InputMap { get; internal set; } = new DefaultInputMap();
+
+	/// <summary>
+	/// Returns a copy of these engine settings with the specified input mapping.
+	/// </summary>
+	/// <param name="value">The <see cref="InputMap"/> instance to use for handling input.</param>
+	/// <returns>
+	/// A new <see cref="EngineSettings"/> instance identical to the current one,
+	/// but configured to use the provided <paramref name="value"/> for input mapping.
+	/// </returns>
 	public EngineSettings WithInputMap(InputMap value)
 	{
 		if (value == null)
@@ -674,6 +700,17 @@ public class EngineSettings
 	/// <para>Info: For components not associated with entities or screens, use 'Engine.GetSingleton'. Singletons are useful for storing data without needing to create additional instances.</para>
 	/// </summary>
 	public GameService[] Services { get; internal set; }
+
+	/// <summary>
+	/// Returns a copy of these engine settings with the specified game services registered.
+	/// </summary>
+	/// <param name="values">
+	/// An array of <see cref="GameService"/> instances to include in the engine’s service collection.
+	/// </param>
+	/// <returns>
+	/// A new <see cref="EngineSettings"/> instance identical to the current one,
+	/// but configured to include the provided <paramref name="values"/> services.
+	/// </returns>
 	public EngineSettings WithServices(params GameService[] values)
 	{
 		if (values.Length == 0)
@@ -746,7 +783,13 @@ public class EngineSettings
 	}
 
 
-
+	/// <summary>
+	/// Builds and returns a finalized <see cref="EngineSettings"/> instance containing all configuration
+	/// options specified through the fluent API.
+	/// </summary>
+	/// <returns>
+	/// A new <see cref="EngineSettings"/> instance with the accumulated settings.
+	/// </returns>
 	public EngineSettings Build()
 	{
 		// check settings...
@@ -758,5 +801,5 @@ public class EngineSettings
 	/// <summary>
 	/// Engine settings used to configure window size, viewport size, vsync, culling, and other options.
 	/// </summary>
-	public EngineSettings()  => Instance ??= this;
+	public EngineSettings() => Instance ??= this;
 }

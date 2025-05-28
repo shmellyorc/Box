@@ -57,7 +57,6 @@ public sealed class Renderer
 	#endregion
 
 
-
 	#region Constructor
 	internal Renderer()
 	{
@@ -90,8 +89,6 @@ public sealed class Renderer
 	public float AlignHeight(float parent, float child, VAlign align)
 		=> AlignmentHelpers.AlignHeight(parent, child, align);
 
-
-
 	/// <summary>
 	/// Aligns the child position horizontally relative to the parent position based on the specified alignment and optional offset.
 	/// </summary>
@@ -113,8 +110,6 @@ public sealed class Renderer
 	public float AlignWidth(float parent, float child, HAlign align)
 		=> AlignmentHelpers.AlignWidth(parent, child, align);
 
-
-
 	/// <summary>
 	/// Aligns the position of the child entity relative to the size and position of the parent entity, based on the specified vertical and horizontal alignments, with an optional vector offset.
 	/// </summary>
@@ -124,7 +119,7 @@ public sealed class Renderer
 	/// <param name="hAlign">The horizontal alignment type (Left, Center, Right).</param>
 	/// <param name="offset">Optional vector offset to apply after alignment (default is null).</param>
 	public void AlignToEntity(Entity parent, Entity child, HAlign hAlign, VAlign vAlign, Vect2 offset)
-		=> child.Position = AlignmentHelpers.AlignToEntity(parent, child, hAlign, vAlign, offset);
+		=> AlignmentHelpers.AlignToEntity(parent, child, hAlign, vAlign, offset);
 
 	/// <summary>
 	/// Aligns the position of the child entity relative to the size and position of the parent entity, based on the specified vertical and horizontal alignments, with an optional vector offset.
@@ -134,9 +129,7 @@ public sealed class Renderer
 	/// <param name="hAlign">The horizontal alignment type (Left, Center, Right).</param>
 	/// <param name="vAlign">The vertical alignment type (Top, Center, Bottom).</param>
 	public void AlignToEntity(Entity parent, Entity child, HAlign hAlign, VAlign vAlign)
-		=> child.Position = AlignmentHelpers.AlignToEntity(parent, child, hAlign, vAlign);
-
-
+		=> AlignmentHelpers.AlignToEntity(parent, child, hAlign, vAlign);
 
 	/// <summary>
 	/// Aligns the position of the entity relative to the viewport (Renderer), based on 
@@ -148,7 +141,7 @@ public sealed class Renderer
 	/// <param name="offset">Additional offset to apply.</param>
 	/// <returns>A vector representing the aligned position.</returns>
 	public void AlignToRenderer(Entity entity, HAlign hAlign, VAlign vAlign, Vect2 offset)
-		=> entity.Position = AlignmentHelpers.AlignToRenderer(entity, hAlign, vAlign, offset);
+		=> AlignToRenderer(entity, hAlign, vAlign, offset);
 
 	/// <summary>
 	/// Aligns the position of the entity relative to the viewport (Renderer), based on the 
@@ -159,7 +152,7 @@ public sealed class Renderer
 	/// <param name="vAlign">The vertical alignment type.</param>
 	/// <returns>A vector representing the aligned position.</returns>
 	public void AlignToRenderer(Entity entity, HAlign hAlign, VAlign vAlign)
-		=> entity.Position = AlignmentHelpers.AlignToRenderer(entity, hAlign, vAlign);
+		=> AlignToRenderer(entity, hAlign, vAlign);
 	#endregion
 
 
@@ -212,6 +205,7 @@ public sealed class Renderer
 
 			// Create a temp buffer specific to this draw group
 			using var vbuf = new SFMLVertexBuffer((uint)verts.Count, primitive, SFMLVertexBuffer.UsageSpecifier.Stream);
+			
 			vbuf.Update(verts.ToArray());
 
 			Engine.Instance.RenderTexture.Draw(vbuf, new SFMLRenderStates

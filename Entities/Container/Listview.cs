@@ -272,7 +272,7 @@ public class Listview : BoxRenderTarget
 	protected override void Update()
 	{
 		if (_timeout > 0)
-			_timeout -= Clock.DeltaTime;
+			_timeout -= BE.Clock.DeltaTime;
 
 		if (_isDirty)
 		{
@@ -292,7 +292,7 @@ public class Listview : BoxRenderTarget
 			if (UseDiffered)
 				Emit(EngineSignals.ListviewSelected, this, null, -1);
 			else
-				EmitDelayed(Clock.DeltaTime, EngineSignals.ListviewSelected, this, null, -1);
+				EmitDelayed(BE.Clock.DeltaTime, EngineSignals.ListviewSelected, this, null, -1);
 
 			return;
 		}
@@ -341,7 +341,7 @@ public class Listview : BoxRenderTarget
 					if (UseDiffered)
 						Emit(EngineSignals.ListviewSelected, this, child, i);
 					else
-						EmitDelayed(Clock.DeltaTime, EngineSignals.ListviewSelected, this, child, i);
+						EmitDelayed(BE.Clock.DeltaTime, EngineSignals.ListviewSelected, this, child, i);
 
 					_oldIndex = i;
 				}
@@ -459,7 +459,7 @@ public class Listview : BoxRenderTarget
 	{
 		var result = base.RemoveChild(entities: entity);
 
-		if(result)
+		if (result)
 			StartRoutine(WaitForDeletionRoutine(entity));
 
 		return result;
@@ -475,7 +475,7 @@ public class Listview : BoxRenderTarget
 		// var result = _container.RemoveChild(entities);
 		var result = RemoveChild(entities);
 
-		if(result)
+		if (result)
 			StartRoutine(WaitForDeletionRoutine(entities));
 
 		return result;
@@ -488,7 +488,7 @@ public class Listview : BoxRenderTarget
 	{
 		// if (_children is not null)
 		// 	_children = new Entity[0];
-		if(_children.Count > 0)
+		if (_children.Count > 0)
 			_children.Clear();
 
 		if (!Children.Any())

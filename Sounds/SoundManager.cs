@@ -5,7 +5,7 @@ namespace Box.Sounds;
 /// <summary>
 /// The sound manager handles all sound channels, allowing you to manage music, sound effects, and other audio effects.
 /// </summary>
-public sealed class SoundManager : UpdatableService
+public sealed class SoundManager
 {
 	#region Fields
 	private readonly Dictionary<int, SoundChannel> _channels = new();
@@ -463,7 +463,7 @@ public sealed class SoundManager : UpdatableService
 	/// This method is called every frame to update the state of active sounds. It handles tasks like updating sound effects,
 	/// checking for completion, and managing the playback state of sounds within the engine.
 	/// </remarks>
-	public override void Update()
+	internal void Update()
 	{
 		if (_engineExit)
 			return;

@@ -85,7 +85,7 @@ internal static class DrawUtils
 		bottomLeft += dstRect.Position;
 		bottomRight += dstRect.Position;
 
-		var ho = Engine.GetService<EngineSettings>().UseTextureHalfOffset ? HalfFOffset : 0f;
+		var ho = EngineSettings.Instance.UseTextureHalfOffset ? HalfFOffset : 0f;
 		var uvLeft = srcRect.X + ho;
 		var uvTop = srcRect.Y + ho;
 		var uvRight = srcRect.X + srcRect.Width - ho;

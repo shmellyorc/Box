@@ -57,8 +57,8 @@ public class CenterPanel : Panel
 	/// </summary>
 	protected override void Update()
 	{
-		if (GetService<EngineSettings>().DebugDraw)
-			Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.GrassGreen);
+		if (EngineSettings.Instance.DebugDraw)
+			BE.Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.GrassGreen);
 
 		base.Update();
 	}

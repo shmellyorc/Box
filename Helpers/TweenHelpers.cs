@@ -1375,7 +1375,7 @@ public static class TweenHelpers
 			float value = EasingHelpers.Ease(type, min, max, tTime);
 			result?.Invoke(value);
 
-			cTime += Engine.GetService<Clock>().DeltaTime;
+			cTime += Clock.Instance.DeltaTime;
 			yield return null;
 		}
 
@@ -1434,7 +1434,7 @@ public static class TweenHelpers
 
 			result?.Invoke(value);
 
-			cTime += Engine.GetService<Clock>().DeltaTime;
+			cTime += Clock.Instance.DeltaTime;
 			yield return null;
 		}
 

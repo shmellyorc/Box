@@ -123,7 +123,7 @@ public struct FloatRange
 	/// <summary>
 	/// Returns a random float between Min and Max using the global Rand instance.
 	/// </summary>
-	public readonly float Random() => Engine.GetService<FastRandom>().Range(_min, _max);
+	public readonly float Random() => FastRandom.Instance.Range(_min, _max);
 
 	/// <summary>
 	/// Returns a string representation of the range and current value.

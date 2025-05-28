@@ -26,11 +26,10 @@ public sealed class WaitForSignal : IEnumerator
 	/// <param name="callback">The action to invoke with the <see cref="SignalHandle"/> when the signal is raised.</param>
 	public WaitForSignal(string signalName, Action<SignalHandle> callback)
 	{
-		_signalService = Engine.GetService<Signal>();
 		_signalName = signalName;
 		_callback = callback;
 
-		_signalService.Connect(_signalName, OnSignalEmitted);
+		Signal.Instance.Connect(_signalName, OnSignalEmitted);
 	}
 
 	private void OnSignalEmitted(SignalHandle handle)

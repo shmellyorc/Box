@@ -29,10 +29,7 @@ public class WaitForSeconds : IEnumerator
 	/// </returns>
 	public bool MoveNext()
 	{
-		if (_clock == null)
-			_clock = Engine.GetService<Clock>();
-
-		_remaining -= _clock.DeltaTime;
+		_remaining -= Clock.Instance.DeltaTime;
 
 		return _remaining > 0f;
 	}

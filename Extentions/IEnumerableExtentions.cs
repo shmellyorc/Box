@@ -72,7 +72,7 @@ public static class IEnumerableExtentions
 			while (n > 1)
 			{
 				n--;
-				int k = Engine.GetService<FastRandom>().NextInt(n + 1);
+				int k = FastRandom.Instance.NextInt(n + 1);
 				T value = list[k];
 
 				list[k] = list[n];

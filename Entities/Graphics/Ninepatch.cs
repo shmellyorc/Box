@@ -122,7 +122,7 @@ public class Ninepatch : Entity
 			}
 		}
 
-		if (GetService<EngineSettings>().DebugDraw)
+		if (EngineSettings.Instance.DebugDraw)
 			Renderer.Instance.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Blue);
 	}
 

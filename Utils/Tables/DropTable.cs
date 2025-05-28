@@ -125,9 +125,9 @@ public class DropTable
 
 		foreach (var entry in _entries)
 		{
-			if (Engine.GetService<FastRandom>().NextFloat() < entry.Chance)
+			if (FastRandom.Instance.NextFloat() < entry.Chance)
 			{
-				int amount = Engine.GetService<FastRandom>().Range(entry.MinAmount, entry.MaxAmount);
+				int amount = FastRandom.Instance.Range(entry.MinAmount, entry.MaxAmount);
 
 				loot.Add(new DropEntryResult(entry.ItemId, amount));
 			}

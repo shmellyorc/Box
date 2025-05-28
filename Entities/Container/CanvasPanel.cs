@@ -49,7 +49,7 @@ namespace Box.Entities.Container
             if (Camera == null)
                 return;
 
-            Position = (Camera.Position - (Renderer.Center)) + Offset;
+            Position = (Camera.Position - (BE.Renderer.Center)) + Offset;
 
             base.Update();
         }

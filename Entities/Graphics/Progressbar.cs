@@ -109,8 +109,8 @@ public class Progressbar : Entity
 		{
 			var region = new Rect2(Position, new Vect2(width, Size.Y));
 
-			Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
-			Renderer.Draw(_fgSurface, region, FgColor, Layer);
+			BE.Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
+			BE.Renderer.Draw(_fgSurface, region, FgColor, Layer);
 		}
 		else
 		{
@@ -130,8 +130,8 @@ public class Progressbar : Entity
 		{
 			var region = new Rect2(new Vect2((Position.X + Size.X) - width, Position.Y), new Vect2(width, Size.Y));
 
-			Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
-			Renderer.Draw(_fgSurface, region, FgColor, Layer);
+			BE.Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
+			BE.Renderer.Draw(_fgSurface, region, FgColor, Layer);
 		}
 		else
 		{
@@ -152,8 +152,8 @@ public class Progressbar : Entity
 		{
 			var region = new Rect2(Position, new Vect2(Size.X, height));
 
-			Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
-			Renderer.Draw(_fgSurface, region, FgColor, Layer);
+			BE.Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
+			BE.Renderer.Draw(_fgSurface, region, FgColor, Layer);
 		}
 		else
 		{
@@ -173,8 +173,8 @@ public class Progressbar : Entity
 		{
 			var region = new Rect2(new Vect2(Position.X, (Position.Y + Size.Y) - height), new Vect2(Size.X, height));
 
-			Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
-			Renderer.Draw(_fgSurface, region, FgColor, Layer);
+			BE.Renderer.Draw(_bgSurface, Bounds, BgColor, Layer);
+			BE.Renderer.Draw(_fgSurface, region, FgColor, Layer);
 		}
 		else
 		{

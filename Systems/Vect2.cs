@@ -982,7 +982,7 @@ public struct Vect2 : IEquatable<Vect2>, IComparable<Vect2>
 	public static Vect2 Transform(float x, float y, Camera camera)
 	{
 		SFMLVectorF sfmlViewPosition =
-			Engine.GetService<Engine>()._window.MapPixelToCoords(new SFMLVectorI((int)x, (int)y), camera.ToSFML());
+			Engine.Instance.Window.MapPixelToCoords(new SFMLVectorI((int)x, (int)y), camera.ToSFML());
 
 		return new Vect2(sfmlViewPosition);
 	}

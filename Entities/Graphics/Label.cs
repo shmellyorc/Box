@@ -172,11 +172,11 @@ public class Label : Entity
 
 					if (Shadow && ShadowColor.Alpha > 0 && ShadowOffset != Vect2.Zero)
 					{
-						Renderer.DrawText(_font, *item,
+						BE.Renderer.DrawText(_font, *item,
 							new Vect2(Position.X + Offset.X + ShadowOffset.X, Position.Y + lineOffset + Offset.Y + ShadowOffset.Y) + SetAlignment(*item), ShadowColor, Layer);
 					}
 
-					Renderer.DrawText(_font, *item, new Vect2(Position.X + Offset.X, Position.Y + lineOffset + Offset.Y) + SetAlignment(*item), Color, Layer);
+					BE.Renderer.DrawText(_font, *item, new Vect2(Position.X + Offset.X, Position.Y + lineOffset + Offset.Y) + SetAlignment(*item), Color, Layer);
 
 					lineOffset += _font.GetTextHeight();
 				}
@@ -204,8 +204,8 @@ public class Label : Entity
 			}
 		}
 
-		if (GetService<EngineSettings>().DebugDraw)
-			Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Yellow);
+		if (EngineSettings.Instance.DebugDraw)
+			BE.Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f, BoxColor.AllShades.Yellow);
 	}
 
 	private Vect2 SetAlignment(string line)

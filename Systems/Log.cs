@@ -5,7 +5,7 @@ namespace Box.Systems;
 /// <summary>
 /// Provides logging functionality to write messages to a file.
 /// </summary>
-public sealed class Log : GameService
+public sealed class Log
 {
 	private bool _exited;
 	private readonly StreamWriter _writer;
@@ -22,7 +22,7 @@ public sealed class Log : GameService
 
 		_path = Path.Combine(
 			FileHelpers.GetApplicationDataPath(),
-			GetService<EngineSettings>().AppLogRoot,
+			EngineSettings.Instance.AppLogRoot,
 			$"{DateTime.Now.ToShortDateString().Replace("/", "-")}.txt"
 		);
 
@@ -34,12 +34,12 @@ public sealed class Log : GameService
 		_writer = new StreamWriter(_path, true);
 
 		AppDomain.CurrentDomain.UnhandledException += OnUnhandledException;
-		GetService<Engine>().OnExiting += OnExiting;
+		Engine.Instance.OnExiting += OnExiting;
 
 		Trace.Listeners.Add(new TextWriterTraceListener(_writer));
 		Trace.AutoFlush = true;
 
-		WriteMessge($"\n\n\n{GetService<EngineSettings>().AppName} started...");
+		WriteMessge($"\n\n\n{EngineSettings.Instance.AppName} started...");
 	}
 
 	private void OnExiting(Engine engine) => Exit();
@@ -114,7 +114,7 @@ public sealed class Log : GameService
 
 	private void WriteMessge(object message)
 	{
-		if (GetService<EngineSettings>().LogDateTime)
+		if (EngineSettings.Instance.LogDateTime)
 		{
 			var dt = DateTime.Now;
 
@@ -128,7 +128,7 @@ public sealed class Log : GameService
 	{
 		Exception error = (Exception)e.ExceptionObject;
 
-		Task.Run(() => GetService<EngineSettings>().OnError?.Invoke(GetService<Engine>(), error));
+		Task.Run(() => EngineSettings.Instance.OnError?.Invoke(Engine.Instance, error));
 
 		string message = $"   {error.Message}";
 		string exception = error.InnerException is null ? "   Null" : $"   {error.InnerException}";

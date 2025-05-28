@@ -7,28 +7,26 @@ namespace Box.Utils;
 /// <summary>
 /// A very fast, non-cryptographic pseudo-random number generator based on xoroshiro128+.
 /// </summary>
-public sealed class FastRandom : GameService
+public sealed class FastRandom
 {
 	private ulong _s0, _s1;
+
+	public static FastRandom Instance { get; internal set; }
 
 	/// <summary>
 	/// Initializes a new instance of <see cref="FastRandom"/> with a seed drawn from
 	/// the system cryptographic RNG.
 	/// </summary>
-	public FastRandom()
-	{
-		var seedBytes = new byte[16];
-		System.Security.Cryptography.RandomNumberGenerator.Fill(seedBytes);
-		_s0 = BitConverter.ToUInt64(seedBytes, 0);
-		_s1 = BitConverter.ToUInt64(seedBytes, 8);
-	}
+	internal FastRandom() : this((ulong)Environment.TickCount64) { }
 
 	/// <summary>
 	/// Initializes a new instance of <see cref="FastRandom"/> using the specified seed.
 	/// </summary>
 	/// <param name="seed">An arbitrary 64-bit value to seed the generator.</param>
-	public FastRandom(ulong seed)
+	internal FastRandom(ulong seed)
 	{
+		Instance ??= this;
+
 		_s0 = SplitMix64(ref seed);
 		_s1 = SplitMix64(ref seed);
 	}

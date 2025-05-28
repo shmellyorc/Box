@@ -45,7 +45,7 @@ public sealed class TimeManager
             }
         }
 
-        _timers.Add(name, Engine.GetService<Coroutine>().Run(Routine(name, delay, repeat, action)));
+        _timers.Add(name, Coroutine.Instance.Run(Routine(name, delay, repeat, action)));
     }
 
     /// <summary>

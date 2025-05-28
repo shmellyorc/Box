@@ -18,7 +18,7 @@ internal class ControllerMap
 /// <summary>
 /// Represents a mapping of input controls for the game.
 /// </summary>
-public class InputMap : GameService
+public class InputMap
 {
 	private readonly Dictionary<uint, bool> _gamepadState = new();
 	private readonly List<SFMLKeyboard.Key> _keyboardKeys = new();
@@ -47,7 +47,7 @@ public class InputMap : GameService
 	/// <summary>
 	/// Gets the mouse position relative to the game window.
 	/// </summary>
-	public Vect2 MousePosition => new(SFMLMouse.GetPosition(Engine._window)); // rel: to the window
+	public Vect2 MousePosition => new(SFMLMouse.GetPosition(Engine.Instance.Window)); // rel: to the window
 
 	/// <summary>
 	/// Indicates if any gamepad is currently connected.
@@ -69,9 +69,7 @@ public class InputMap : GameService
 	/// <summary>
 	/// Initializes a new instance of the InputMap class.
 	/// </summary>>
-	public InputMap() { }
-
-	public override void Initialize()
+	public InputMap()
 	{
 		LoadControllerDbFromResource("gamecontrollerdb.txt");
 
@@ -79,34 +77,28 @@ public class InputMap : GameService
 
 		for (uint i = 0; i < SFMLGamepad.Count; i++)
 			_gamepadState.Add(i, SFMLGamepad.IsConnected(i));
-
-		base.Initialize();
 	}
 
 	internal void LoadInputs()
 	{
-		var e = GetService<Engine>();
-
 		// Unbinds previous ones, if any:
 		UnloadInputs();
 
 		// Bind new ones:
-		e._window.KeyReleased += (_, args) => _keyboardKeys.Remove(args.Code);
-		e._window.MouseButtonReleased += (_, args) => _mouseKeys.Remove(args.Button);
-		e._window.JoystickButtonReleased += (_, args) => OnJoystickRelease((ButtonType)args.Button);
-		e._window.JoystickConnected += (_, args) => OnJoystickConnected(args.JoystickId);
-		e._window.JoystickDisconnected += (_, args) => OnJoystickDisconnected(args.JoystickId);
+		Engine.Instance.Window.KeyReleased += (_, args) => _keyboardKeys.Remove(args.Code);
+		Engine.Instance.Window.MouseButtonReleased += (_, args) => _mouseKeys.Remove(args.Button);
+		Engine.Instance.Window.JoystickButtonReleased += (_, args) => OnJoystickRelease((ButtonType)args.Button);
+		Engine.Instance.Window.JoystickConnected += (_, args) => OnJoystickConnected(args.JoystickId);
+		Engine.Instance.Window.JoystickDisconnected += (_, args) => OnJoystickDisconnected(args.JoystickId);
 	}
 
 	internal void UnloadInputs()
 	{
-		var e = GetService<Engine>();
-
-		e._window.KeyReleased -= (_, args) => _keyboardKeys.Remove(args.Code);
-		e._window.MouseButtonReleased -= (_, args) => _mouseKeys.Remove(args.Button);
-		e._window.JoystickButtonReleased -= (_, args) => OnJoystickRelease((ButtonType)args.Button);
-		e._window.JoystickConnected -= (_, args) => OnJoystickConnected(args.JoystickId);
-		e._window.JoystickDisconnected -= (_, args) => OnJoystickDisconnected(args.JoystickId);
+		Engine.Instance.Window.KeyReleased -= (_, args) => _keyboardKeys.Remove(args.Code);
+		Engine.Instance.Window.MouseButtonReleased -= (_, args) => _mouseKeys.Remove(args.Button);
+		Engine.Instance.Window.JoystickButtonReleased -= (_, args) => OnJoystickRelease((ButtonType)args.Button);
+		Engine.Instance.Window.JoystickConnected -= (_, args) => OnJoystickConnected(args.JoystickId);
+		Engine.Instance.Window.JoystickDisconnected -= (_, args) => OnJoystickDisconnected(args.JoystickId);
 	}
 
 	/// <summary>
@@ -230,7 +222,7 @@ public class InputMap : GameService
 			return false;
 		if (_items[name].Count == 0)
 			return false;
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		foreach (var item in _items[name])
@@ -322,7 +314,7 @@ public class InputMap : GameService
 			return false;
 		if (_items[name].Count == 0)
 			return false;
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		foreach (var item in _items[name])
@@ -414,7 +406,7 @@ public class InputMap : GameService
 			return false;
 		if (_items[name].Count == 0)
 			return false;
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		foreach (var item in _items[name])
@@ -505,7 +497,7 @@ public class InputMap : GameService
 	/// <returns>True if the keyboard button is down, false otherwise.</returns>
 	public bool IsKeyPressed(KeyboardButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		var result = SFMLKeyboard.IsKeyPressed((SFMLKeyboard.Key)button);
@@ -550,7 +542,7 @@ public class InputMap : GameService
 	/// <returns>True if the keyboard button is up, false otherwise.</returns>
 	public bool IsKeyReleased(KeyboardButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		return !IsKeyPressed(button);
@@ -590,7 +582,7 @@ public class InputMap : GameService
 	/// <returns>True if the keyboard button was pressed in the current frame, false otherwise.</returns>
 	public bool IsKeyJustPressed(KeyboardButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 		if (IsKeyReleased(button))
 			return false;
@@ -644,7 +636,7 @@ public class InputMap : GameService
 	/// <returns>True if the mouse button is down, false otherwise.</returns>
 	public bool IsMousePressed(MouseButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		return SFMLMouse.IsButtonPressed((SFMLMouse.Button)button);
@@ -657,7 +649,7 @@ public class InputMap : GameService
 	/// <returns>True if the mouse button is up, false otherwise.</returns>
 	public bool IsMouseReleased(MouseButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 
 		return !IsMousePressed(button);
@@ -670,7 +662,7 @@ public class InputMap : GameService
 	/// <returns>True if the mouse button was pressed in the current frame, false otherwise.</returns>
 	public bool IsMouseJustPressed(MouseButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 		if (IsMouseReleased(button))
 			return false;
@@ -727,7 +719,7 @@ public class InputMap : GameService
 	/// <returns>True if the gamepad button was pressed in the current frame, false otherwise.</returns>
 	public bool IsGamepadJustPressed(GamepadButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 		if (IsGamepadReleased(button))
 			return false;
@@ -778,14 +770,14 @@ public class InputMap : GameService
 	/// <returns>True if the gamepad button is down, false otherwise.</returns>
 	public bool IsGamepadPressed(GamepadButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return false;
 		if (!AnyGamepadConnected)
 			return false;
 
 		SFMLGamepad.Update();
 
-		var settings = GetService<EngineSettings>();
+		var settings = EngineSettings.Instance;
 		var deadzoneThreshold = settings.GamepadDeadzone * 100f;
 
 		foreach (var joy in _gamepadState)
@@ -888,7 +880,7 @@ public class InputMap : GameService
 	/// <returns>The force of the gamepad button press, ranging from 0.0 (not pressed) to 1.0 (fully pressed).</returns>
 	public float GetGamepadForce(GamepadButton button)
 	{
-		if (!Engine.IsActive)
+		if (!Engine.Instance.IsActive)
 			return 0f;
 		if (!AnyGamepadConnected)
 			return 0f;
@@ -923,27 +915,27 @@ public class InputMap : GameService
 			var value = button switch
 			{
 				GamepadButton.LeftThumbstickLeft =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X) * -1f, 0f, 100f) / 100f, 0f, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.LeftThumbstickRight =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.X), 0f, 100f) / 100f, 0f, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.LeftThumbstickUp =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y) * -1f, 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y) * -1f, 0f, 100f) / 100f, 0f, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.LeftThumbstickDown =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y), 0f, 100f) / 100f, 0f, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Y), 0f, 100f) / 100f, 0f, EngineSettings.Instance.GamepadDeadzone),
 
 				GamepadButton.RightThumbstickLeft =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U) * -1f, 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.RightThumbstickRight =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.U), 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.RightThumbstickUp =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V) * -1f, 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.RightThumbstickDown =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.V), 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 
 				GamepadButton.LeftTrigger =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z), 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z), 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 				GamepadButton.RightTrigger =>
-					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z) * -1f, 0f, 100f) / 100f, 0, GetService<EngineSettings>().GamepadDeadzone),
+					Deadzone(Math.Clamp(SFMLGamepad.GetAxisPosition(joy.Key, SFMLAxis.Z) * -1f, 0f, 100f) / 100f, 0, EngineSettings.Instance.GamepadDeadzone),
 
 				_ => 0f
 			};

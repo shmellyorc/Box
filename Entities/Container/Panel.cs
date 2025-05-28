@@ -72,8 +72,8 @@ public class Panel : Entity
 			IsDirty = false;
 		}
 
-		if (Engine.GetService<EngineSettings>().DebugDraw)
-			Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f,  BoxColor.AllShades.Red);
+		if (EngineSettings.Instance.DebugDraw)
+			BE.Renderer.DrawRectangleOutline(Position.X, Position.Y, Size.X, Size.Y, 1f,  BoxColor.AllShades.Red);
 
 		base.Update();
 	}

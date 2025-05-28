@@ -15,16 +15,16 @@ public static class FileHelpers
 		var basePath = Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory);
 
 		// Is it a MacOS bundle?
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && Engine.GetService<EngineSettings>().IsMacBundle)
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) && EngineSettings.Instance.IsMacBundle)
 		{
 			var pathComponents = basePath.Split('/');
 			var macPath = string.Join("/", pathComponents, 0, pathComponents.Length - 2);
-			var resourcePath = Path.Combine(macPath, "Resources", Engine.GetService<EngineSettings>().AppContentRoot);
+			var resourcePath = Path.Combine(macPath, "Resources", EngineSettings.Instance.AppContentRoot);
 
 			return resourcePath;
 		}
 
-		return Path.Combine(basePath, Engine.GetService<EngineSettings>().AppContentRoot);
+		return Path.Combine(basePath, EngineSettings.Instance.AppContentRoot);
 	}
 
 	/// <summary>
@@ -38,7 +38,7 @@ public static class FileHelpers
 	public static string GetApplicationDataPath()
 	{
 
-		if (Engine.GetService<EngineSettings>().UseApplicationData)
+		if (EngineSettings.Instance.UseApplicationData)
 		{
 			string path;
 
@@ -65,7 +65,7 @@ public static class FileHelpers
 				path = AppDomain.CurrentDomain.BaseDirectory;
 			}
 
-			return Path.Combine(path, Engine.GetService<EngineSettings>().AppName);
+			return Path.Combine(path, EngineSettings.Instance.AppName);
 		}
 
 		return AppDomain.CurrentDomain.BaseDirectory;
@@ -115,7 +115,7 @@ public static class FileHelpers
 	/// </summary>
 	/// <param name="filename">filename to append to the save folder path.</param>
 	/// <returns>The string path of the save folder location.</returns>
-	public static string SaveFilePath(string filename) => Path.Combine(Engine.GetService<Engine>().AppSaveFolder, filename);
+	public static string SaveFilePath(string filename) => Path.Combine(Engine.Instance.AppSaveFolder, filename);
 
 	/// <summary>
 	/// Checks if a file exists in the save folder path.
@@ -204,7 +204,7 @@ public static class FileHelpers
 
 			if (timeout > 0f)
 			{
-				elapsed += Engine.GetService<Clock>().DeltaTime;
+				elapsed += Clock.Instance.DeltaTime;
 
 				if (elapsed >= timeout)
 					yield break;

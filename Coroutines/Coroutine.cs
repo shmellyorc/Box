@@ -1,174 +1,145 @@
-using Box.Coroutines.Routines;
-using Box.Coroutines.Routines.Time;
-using Box.Services.Types;
-
 namespace Box.Coroutines;
 
 /// <summary>
 /// A container for running multiple coroutines in parallel.
 /// Provides methods to start, stop, and query coroutines.
 /// </summary>
-public sealed class Coroutine : UpdatableService
+public sealed class Coroutine
 {
-	private readonly List<CoroutineJob> _jobs = new();
-
 	/// <summary>
-	/// Gets the number of currently active coroutines.
+	/// A container for running multiple routines in parallel. Coroutines can be nested.
 	/// </summary>
-	public int Count => _jobs.Count;
+	private List<IEnumerator> running = new List<IEnumerator>();
+	private List<float> delays = new List<float>();
 
+	public static Coroutine Instance { get; private set; }
 
-	/// <summary>
-	/// Starts a coroutine immediately.
-	/// </summary>
-	/// <param name="routine">The IEnumerator routine to run.</param>
-	/// <returns>A handle to control the started coroutine.</returns>
-	public CoroutineHandle Run(IEnumerator routine) => EngineRun(null, routine);
-	internal CoroutineHandle EngineRun(object owner, IEnumerator routine) =>
-		EngineRunDelayed(owner, 0f, routine);
-
-	/// <summary>
-	/// Starts a coroutine after an initial delay.
-	/// </summary>
-	/// <param name="delay">Seconds to wait before starting the coroutine.</param>
-	/// <param name="routine">The IEnumerator routine to run.</param>
-	/// <returns>A handle to control the started coroutine.</returns>
-	public CoroutineHandle RunDelayed(float delay, IEnumerator routine)
-		=> EngineRunDelayed(null, delay, routine);
-	internal CoroutineHandle EngineRunDelayed(object owner, float delay, IEnumerator routine)
+	internal Coroutine()
 	{
-		_jobs.Add(new CoroutineJob(owner, routine, delay));
-
-		return new CoroutineHandle(routine);
+		Instance ??= this;
 	}
 
 	/// <summary>
-	/// Stops the specified coroutine if it is running.
+	/// Run a coroutine.
 	/// </summary>
-	/// <param name="routine">The IEnumerator routine to stop.</param>
-	/// <returns><c>true</c> if the coroutine was found and stopped; otherwise, <c>false</c>.</returns>
+	/// <returns>A handle to the new coroutine.</returns>
+	/// <param name="delay">How many seconds to delay before starting.</param>
+	/// <param name="routine">The routine to run.</param>
+	public CoroutineHandle RunDelayed(float delay, IEnumerator routine)
+	{
+		running.Add(routine);
+		delays.Add(delay);
+		return new CoroutineHandle(this, routine);
+	}
+
+	/// <summary>
+	/// Run a coroutine.
+	/// </summary>
+	/// <returns>A handle to the new coroutine.</returns>
+	/// <param name="routine">The routine to run.</param>
+	public CoroutineHandle Run(IEnumerator routine)
+	{
+		return RunDelayed(0f, routine);
+	}
+
+	/// <summary>
+	/// Stop the specified routine.
+	/// </summary>
+	/// <returns>True if the routine was actually stopped.</returns>
+	/// <param name="routine">The routine to stop.</param>
 	public bool Stop(IEnumerator routine)
 	{
-		for (int i = 0; i < _jobs.Count; i++)
-		{
-			if (_jobs[i].Routine == routine)
-			{
-				_jobs.RemoveAt(i);
-				return true;
-			}
-		}
-		return false;
-	}
-
-	/// <summary>
-	/// Stops the specified coroutine via its handle.
-	/// </summary>
-	/// <param name="handle">The handle of the coroutine to stop.</param>
-	/// <returns><c>true</c> if the coroutine was stopped; otherwise, <c>false</c>.</returns>
-	public bool Stop(CoroutineHandle handle) => handle.Stop();
-
-	/// <summary>
-	/// Determines whether the specified IEnumerator routine is currently running.
-	/// </summary>
-	/// <param name="routine">The IEnumerator routine to query.</param>
-	/// <returns><c>true</c> if the routine is active; otherwise, <c>false</c>.</returns>
-	public bool IsRunning(IEnumerator routine) =>
-		_jobs.Exists(j => j.Routine == routine);
-
-	/// <summary>
-	/// Determines whether the specified coroutine handle is currently running.
-	/// </summary>
-	/// <param name="handle">The handle to query.</param>
-	/// <returns><c>true</c> if the handle's coroutine is active; otherwise, <c>false</c>.</returns>
-	public bool IsRunning(CoroutineHandle handle) => handle.IsRunning;
-
-	internal void StopAll(object owner = null)
-	{
-		if (owner == null)
-		{
-			_jobs.Clear();
-			return;
-		}
-
-		_jobs.RemoveAll(job => ReferenceEquals(job.Owner, owner));
-	}
-
-	/// <inheritdoc/>
-	public override void Update()
-	{
-		if (_jobs.Count == 0) return;
-
-		for (int i = _jobs.Count - 1; i >= 0; i--)
-		{
-			var job = _jobs[i];
-			if (job.Delay > 0f)
-			{
-				job.Delay -= Clock.DeltaTime;
-				continue;
-			}
-
-			if (!MoveNext(ref job))
-				_jobs.RemoveAt(i);
-		}
-
-		base.Update();
-	}
-
-	// Internal: advances a single job one step, returns false if complete.
-	private bool MoveNext(ref CoroutineJob job)
-	{
-		var routine = job.Routine;
-
-		if (routine.Current is IEnumerator nested)
-		{
-			var nestedJob = new CoroutineJob(job.Owner, nested, 0f);
-
-			if (MoveNext(ref nestedJob))
-			{
-				job.Routine = Wrap(nestedJob.Routine, routine);
-				job.Delay = nestedJob.Delay;
-
-				return true;
-			}
-		}
-
-		if (!routine.MoveNext()) return false;
-
-		switch (routine.Current)
-		{
-			case float f:
-				job.Routine = Wrap(new WaitForSeconds(f), routine);
-				job.Delay = 0f;
-				return true;
-			case double d:
-				job.Routine = Wrap(new WaitForSeconds((float)d), routine);
-				job.Delay = 0f;
-				return true;
-			case int n:
-				job.Routine = Wrap(new WaitForSeconds(n), routine);
-				job.Delay = 0f;
-				return true;
-			default:
-				break; // do nothing...
-		}
-
-		if (routine.Current is IEnumerator anyEnum)
-		{
-			job.Routine = Wrap(anyEnum, routine);
-			job.Delay = 0f;
-
-			return true;
-		}
-
-		job.Delay = 0f;
-
+		int i = running.IndexOf(routine);
+		if (i < 0)
+			return false;
+		running[i] = null;
+		delays[i] = 0f;
 		return true;
 	}
 
-	// Internal: helper to resume parent after first completes.
-	private static IEnumerator Wrap(IEnumerator first, IEnumerator parent)
+	/// <summary>
+	/// Stop the specified routine.
+	/// </summary>
+	/// <returns>True if the routine was actually stopped.</returns>
+	/// <param name="routine">The routine to stop.</param>
+	public bool Stop(CoroutineHandle routine)
 	{
-		yield return first;
-		yield return parent;
+		return routine.Stop();
+	}
+
+	/// <summary>
+	/// Stop all running routines.
+	/// </summary>
+	public void StopAll()
+	{
+		running.Clear();
+		delays.Clear();
+	}
+
+	/// <summary>
+	/// Check if the routine is currently running.
+	/// </summary>
+	/// <returns>True if the routine is running.</returns>
+	/// <param name="routine">The routine to check.</param>
+	public bool IsRunning(IEnumerator routine)
+	{
+		return running.Contains(routine);
+	}
+
+	/// <summary>
+	/// Check if the routine is currently running.
+	/// </summary>
+	/// <returns>True if the routine is running.</returns>
+	/// <param name="routine">The routine to check.</param>
+	public bool IsRunning(CoroutineHandle routine)
+	{
+		return routine.IsRunning;
+	}
+
+	internal void Update()
+	{
+		if (running.Count == 0)
+			return;
+
+		for (int i = 0; i < running.Count; i++)
+		{
+			if (delays[i] > 0f)
+				delays[i] -= Clock.Instance.DeltaTime;
+			else if (running[i] == null || !MoveNext(running[i], i))
+			{
+				running.RemoveAt(i);
+				delays.RemoveAt(i--);
+			}
+		}
+	}
+
+	bool MoveNext(IEnumerator routine, int index)
+	{
+		if (routine.Current is IEnumerator enumerator)
+		{
+			if (MoveNext(enumerator, index))
+				return true;
+
+			delays[index] = 0f;
+		}
+
+		bool result = routine.MoveNext();
+
+		if (routine.Current is float fValue)
+			delays[index] = fValue;
+		else if (routine.Current is double dValue)
+			delays[index] = (float)dValue;
+		else if (routine.Current is int iValue)
+			delays[index] = iValue;
+
+		return result;
+	}
+
+	/// <summary>
+	/// How many coroutines are currently running.
+	/// </summary>
+	public int Count
+	{
+		get { return running.Count; }
 	}
 }

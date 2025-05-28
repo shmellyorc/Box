@@ -79,7 +79,7 @@ public static class AlignmentHelpers
 		if (entity is null)
 			return Vect2.Zero;
 
-		var v = Engine.GetService<EngineSettings>().Viewport;
+		var v = EngineSettings.Instance.Viewport;
 		var x = AlignWidth(v.X, entity.Size.X, hAlign);
 		var y = AlignHeight(v.Y, entity.Size.Y, vAlign);
 

@@ -68,7 +68,7 @@ public static class CoroutineHelper
 		var runners = new List<CoroutineHandle>();
 
 		foreach (var routine in routines)
-			runners.Add(Engine.GetService<Coroutine>().Run(routine)); // assumes you have a coroutine system that returns handles
+			runners.Add(Coroutine.Instance.Run(routine)); // assumes you have a coroutine system that returns handles
 
 		while (runners.Any(r => r.IsRunning))
 			yield return null;
@@ -90,7 +90,7 @@ public static class CoroutineHelper
 
 		float elapsed = 0f;
 
-		while ((elapsed += Engine.GetService<Clock>().DeltaTime) < seconds)
+		while ((elapsed += Clock.Instance.DeltaTime) < seconds)
 			yield return null;
 	}
 
@@ -169,7 +169,7 @@ public static class CoroutineHelper
 		{
 			yield return null;
 
-			timeout += Engine.GetService<Clock>().DeltaTime;
+			timeout += Clock.Instance.DeltaTime;
 		}
 	}
 
@@ -216,7 +216,7 @@ public static class CoroutineHelper
 		{
 			yield return null;
 
-			timeout += Engine.GetService<Clock>().DeltaTime;
+			timeout += Clock.Instance.DeltaTime;
 			if (timeout > duration)
 			{
 				canExecute = false;
